@@ -19,4 +19,7 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="World")
     TObjectPtr<UWorldRegionRegistry> WorldRegionRegistryAsset;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="World", meta=(ToolTip="Stable seed used by world systems such as regional weather."))
+    int32 WorldSeed = 20261124;
 };
