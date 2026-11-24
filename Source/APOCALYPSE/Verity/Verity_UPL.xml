@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root xmlns:android="http://schemas.android.com/apk/res/android">
   <init><log text="APOCALYPSE: registering free Android system TTS for VERITY"/></init>
+  <androidManifestUpdates>
+    <addAttribute tag="application" name="android:usesCleartextTraffic" value="true" />
+  </androidManifestUpdates>
   <gameActivityOnCreateAdditions>
     <insert>VerityTTS.initialize(this);</insert>
   </gameActivityOnCreateAdditions>
