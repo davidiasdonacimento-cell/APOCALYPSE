@@ -16,7 +16,7 @@ class APOCALYPSE_API UVerityDialogueSystem : public UActorComponent
 public:
     UVerityDialogueSystem();
     UPROPERTY(BlueprintAssignable, Category="VERITY|Dialogue") FOnVerityDialogueLine OnDialogueLine;
-    void Configure(const FString& OptionalLocalAIUrl, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice);
+    void Configure(const FString& OptionalLocalAIUrl, const FString& InLocalAIModel, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SendPlayerMessage(const FString& Message);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SetAutomaticConversationEnabled(bool bEnabled);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SetCombatActive(bool bActive);
