@@ -10,6 +10,7 @@ class APOCALYPSE_API UVerityCombatSystem : public UActorComponent
 public:
     UVerityCombatSystem();
     void SetTarget(AActor* NewTarget);
+    void SetCombatEnabled(bool bEnabled);
     UFUNCTION(BlueprintPure, Category="VERITY|Combat") bool IsInCombat() const { return Target.IsValid(); }
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|Combat", meta=(ClampMin="1.0", ClampMax="100.0")) float FictionalDamagePerHit = 12.0f;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|Combat", meta=(ClampMin="0.3", ClampMax="5.0")) float AttackInterval = 1.25f;
@@ -19,5 +20,6 @@ protected:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
     TWeakObjectPtr<AActor> Target;
+    bool bCombatEnabled = true;
     float AttackCooldown = 0.0f;
 };
