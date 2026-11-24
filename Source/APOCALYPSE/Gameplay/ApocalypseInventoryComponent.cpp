@@ -11,8 +11,9 @@ int32 UApocalypseInventoryComponent::GetItemQuantity(FName ItemId) const
 }
 int32 UApocalypseInventoryComponent::AddItem(FName ItemId, int32 Quantity)
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority() || !ItemCatalog || ItemId.IsNone() || Quantity <= 0) return 0;
-    const FApocalypseItemDefinition* Definition = ItemCatalog->FindItem(ItemId);
+    if (!GetOwner() || !GetOwner()->HasAuthority() || ItemId.IsNone() || Quantity <= 0) return 0;
+    UApocalypseItemCatalog* Catalog = GetCatalog();
+    const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(ItemId) : nullptr;
     if (!Definition || Definition->MaxStack <= 0) return 0;
     int32 Remaining = Quantity;
     for (FApocalypseInventoryStack& Stack : Items)
@@ -50,8 +51,9 @@ bool UApocalypseInventoryComponent::RemoveItem(FName ItemId, int32 Quantity)
 }
 bool UApocalypseInventoryComponent::ConsumeItem(FName ItemId)
 {
-    if (!GetOwner() || !GetOwner()->HasAuthority() || !ItemCatalog || GetItemQuantity(ItemId) < 1) return false;
-    const FApocalypseItemDefinition* Definition = ItemCatalog->FindItem(ItemId);
+    if (!GetOwner() || !GetOwner()->HasAuthority() || GetItemQuantity(ItemId) < 1) return false;
+    UApocalypseItemCatalog* Catalog = GetCatalog();
+    const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(ItemId) : nullptr;
     if (!Definition) return false;
     UApocalypseSurvivalComponent* Survival = GetOwner()->FindComponentByClass<UApocalypseSurvivalComponent>();
     const bool bHasEffect = Definition->HungerRestoration > 0.0f || Definition->ThirstRestoration > 0.0f || Definition->HealthRestoration > 0.0f;
