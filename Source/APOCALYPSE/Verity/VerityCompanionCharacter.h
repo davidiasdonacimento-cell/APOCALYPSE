@@ -27,7 +27,8 @@ public:
 protected:
     virtual void BeginPlay() override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI") FString AIBackendBaseUrl;
+    UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI", meta=(ToolTip="Optional OpenAI-compatible endpoint hosted locally on your own network. Leave empty for offline mode.")) FString LocalAIBaseUrl;
+    UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI") FString LocalAIModel = TEXT("qwen2.5:1.5b");
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCompanionAI> CompanionAI;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCombatSystem> CombatSystem;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityNavigationSystem> NavigationSystem;
