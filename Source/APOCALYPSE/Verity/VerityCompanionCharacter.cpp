@@ -33,6 +33,7 @@ void AVerityCompanionCharacter::BeginPlay()
     Super::BeginPlay();
     if (VerityMesh) GetMesh()->SetSkeletalMesh(VerityMesh);
     DialogueSystem->Configure(AIBackendBaseUrl, MemorySystem, PersonalitySystem, VoiceSystem);
+    ApplyCompanionEnabled();
 }
 
 void AVerityCompanionCharacter::SetPlayerTarget(AActor* Player)
@@ -44,19 +45,29 @@ void AVerityCompanionCharacter::SetPlayerTarget(AActor* Player)
 
 void AVerityCompanionCharacter::SetCompanionEnabled(bool bEnabled)
 {
-    if (!HasAuthority()) { bCompanionEnabled = bEnabled; return; }
     bCompanionEnabled = bEnabled;
-    if (NavigationSystem) NavigationSystem->SetFollowingEnabled(bEnabled);
-    SetActorHiddenInGame(!bEnabled);
-    SetActorEnableCollision(bEnabled);
-    if (!bEnabled && VoiceSystem) VoiceSystem->StopSpeaking();
+    ApplyCompanionEnabled();
+    if (!HasAuthority()) ServerSetCompanionEnabled(bEnabled);
+}
+
+void AVerityCompanionCharacter::ServerSetCompanionEnabled_Implementation(bool bEnabled)
+{
+    bCompanionEnabled = bEnabled;
+    ApplyCompanionEnabled();
+    ForceNetUpdate();
+}
+
+void AVerityCompanionCharacter::ApplyCompanionEnabled()
+{
+    if (NavigationSystem) NavigationSystem->SetFollowingEnabled(bCompanionEnabled);
+    SetActorHiddenInGame(!bCompanionEnabled);
+    SetActorEnableCollision(bCompanionEnabled);
+    if (!bCompanionEnabled && VoiceSystem) VoiceSystem->StopSpeaking();
 }
 
 void AVerityCompanionCharacter::OnRep_CompanionEnabled()
 {
-    SetActorHiddenInGame(!bCompanionEnabled);
-    SetActorEnableCollision(bCompanionEnabled);
-    if (!bCompanionEnabled && VoiceSystem) VoiceSystem->StopSpeaking();
+    ApplyCompanionEnabled();
 }
 
 void AVerityCompanionCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
