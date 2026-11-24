@@ -1,0 +1,22 @@
+#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Gameplay/ApocalypseInteractable.h"
+#include "ApocalypseStorageContainer.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnApocalypseStorageOpened, AActor*, InteractingActor);
+
+UCLASS()
+class APOCALYPSE_API AApocalypseStorageContainer : public AActor, public IApocalypseInteractable
+{
+    GENERATED_BODY()
+public:
+    AApocalypseStorageContainer();
+    virtual bool CanInteract_Implementation(AActor* InteractingActor) const override;
+    virtual void Interact_Implementation(AActor* InteractingActor) override;
+    UPROPERTY(BlueprintAssignable, Category="Storage") FOnApocalypseStorageOpened OnStorageOpened;
+    UFUNCTION(BlueprintPure, Category="Storage") class UApocalypseInventoryComponent* GetStorageInventory() const { return Inventory; }
+protected:
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Storage") TObjectPtr<USceneComponent> SceneRoot;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Storage") TObjectPtr<class UApocalypseInventoryComponent> Inventory;
+};
