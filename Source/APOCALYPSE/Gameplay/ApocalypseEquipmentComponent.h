@@ -4,25 +4,12 @@
 #include "Gameplay/ApocalypseItemCatalog.h"
 #include "ApocalypseEquipmentComponent.generated.h"
 
-class UApocalypseInventoryComponent;
-
-UENUM(BlueprintType)
-enum class EApocalypseEquipmentSlot : uint8
-{
-    Head,
-    Body,
-    Backpack,
-    Utility
-};
-
 USTRUCT(BlueprintType)
 struct FApocalypseEquippedItem
 {
     GENERATED_BODY()
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     EApocalypseEquipmentSlot Slot = EApocalypseEquipmentSlot::Utility;
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     FName ItemId = NAME_None;
 };
@@ -33,7 +20,6 @@ UCLASS(ClassGroup=(APOCALYPSE), meta=(BlueprintSpawnableComponent))
 class APOCALYPSE_API UApocalypseEquipmentComponent : public UActorComponent
 {
     GENERATED_BODY()
-
 public:
     UApocalypseEquipmentComponent();
 
