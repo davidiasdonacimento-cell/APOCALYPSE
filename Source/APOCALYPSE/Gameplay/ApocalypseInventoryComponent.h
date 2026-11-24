@@ -3,7 +3,9 @@
 #include "Components/ActorComponent.h"
 #include "Gameplay/ApocalypseItemCatalog.h"
 #include "ApocalypseInventoryComponent.generated.h"
+
 class UApocalypseInventoryComponent;
+
 USTRUCT(BlueprintType)
 struct FApocalypseInventoryStack
 {
@@ -11,8 +13,10 @@ struct FApocalypseInventoryStack
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) FName ItemId = NAME_None;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly) int32 Quantity = 0;
 };
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnApocalypseInventoryChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnApocalypseStorageOpened, UApocalypseInventoryComponent*, StorageInventory);
+
 UCLASS(ClassGroup=(APOCALYPSE), meta=(BlueprintSpawnableComponent))
 class APOCALYPSE_API UApocalypseInventoryComponent : public UActorComponent
 {
@@ -27,6 +31,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="Inventory") bool RemoveItem(FName ItemId, int32 Quantity);
     UFUNCTION(BlueprintCallable, Category="Inventory") bool ConsumeItem(FName ItemId);
     UFUNCTION(BlueprintCallable, Category="Inventory") void RequestTransferTo(UApocalypseInventoryComponent* Target, FName ItemId, int32 Quantity);
+    UFUNCTION(BlueprintCallable, Category="Inventory") void RequestTransferFrom(UApocalypseInventoryComponent* Source, FName ItemId, int32 Quantity);
     UFUNCTION(BlueprintPure, Category="Inventory") const UApocalypseItemCatalog* GetCatalog() const { return ItemCatalog ? ItemCatalog.Get() : GetDefault<UApocalypseItemCatalog>(); }
     UFUNCTION(BlueprintCallable, Category="Inventory|Storage") void NotifyStorageOpened(UApocalypseInventoryComponent* StorageInventory);
 protected:
@@ -36,6 +41,7 @@ protected:
     UPROPERTY(ReplicatedUsing=OnRep_Items, VisibleInstanceOnly, BlueprintReadOnly, Category="Inventory") TArray<FApocalypseInventoryStack> Items;
     UFUNCTION() void OnRep_Items();
     UFUNCTION(Server, Reliable) void ServerTransferTo(UApocalypseInventoryComponent* Target, FName ItemId, int32 Quantity);
+    UFUNCTION(Server, Reliable) void ServerTransferFrom(UApocalypseInventoryComponent* Source, FName ItemId, int32 Quantity);
     UFUNCTION(Client, Reliable) void ClientNotifyStorageOpened(UApocalypseInventoryComponent* StorageInventory);
 private:
     void NotifyInventoryChanged();
