@@ -20,7 +20,7 @@ class APOCALYPSE_API UVerityPersonalitySystem : public UActorComponent
 public:
     UVerityPersonalitySystem();
     UFUNCTION(BlueprintPure, Category="VERITY|Personality") FString BuildSystemPrompt() const;
-    UFUNCTION(BlueprintPure, Category="VERITY|Personality") FString GetOfflineLine(EVerityMood Mood);
+    UFUNCTION(BlueprintCallable, Category="VERITY|Personality") FString GetOfflineLine(EVerityMood Mood);
     UFUNCTION(BlueprintCallable, Category="VERITY|Personality") void SetMood(EVerityMood NewMood) { Mood = NewMood; }
     UFUNCTION(BlueprintPure, Category="VERITY|Personality") EVerityMood GetMood() const { return Mood; }
 private:
