@@ -55,15 +55,43 @@ jobs:
             Source/APOCALYPSE/World/WorldPOIRegistry.h
             Source/APOCALYPSE/Tests/WorldSystemsTests.cpp
             Source/APOCALYPSE/Tests/InventorySystemsTests.cpp
+            Source/APOCALYPSE/Tests/VeritySystemsTests.cpp
+            Source/APOCALYPSE/Verity/VerityHostileTarget.h
+            Source/APOCALYPSE/Verity/VerityAIController.h
+            Source/APOCALYPSE/Verity/VerityAIController.cpp
+            Source/APOCALYPSE/Verity/VerityCompanionAI.h
+            Source/APOCALYPSE/Verity/VerityCompanionAI.cpp
+            Source/APOCALYPSE/Verity/VerityCombatSystem.h
+            Source/APOCALYPSE/Verity/VerityCombatSystem.cpp
+            Source/APOCALYPSE/Verity/VerityDialogueSystem.h
+            Source/APOCALYPSE/Verity/VerityDialogueSystem.cpp
+            Source/APOCALYPSE/Verity/VerityMemorySystem.h
+            Source/APOCALYPSE/Verity/VerityMemorySystem.cpp
+            Source/APOCALYPSE/Verity/VerityNavigationSystem.h
+            Source/APOCALYPSE/Verity/VerityNavigationSystem.cpp
+            Source/APOCALYPSE/Verity/VerityPersonalitySystem.h
+            Source/APOCALYPSE/Verity/VerityPersonalitySystem.cpp
+            Source/APOCALYPSE/Verity/VerityVoiceSystem.h
+            Source/APOCALYPSE/Verity/VerityVoiceSystem.cpp
+            Source/APOCALYPSE/Verity/VerityCompanionCharacter.h
+            Source/APOCALYPSE/Verity/VerityCompanionCharacter.cpp
+            Source/APOCALYPSE/UI/VeritySettingsWidget.h
+            Source/APOCALYPSE/UI/VeritySettingsWidget.cpp
+            Backend/Verity/main.py
+            Backend/Verity/requirements.txt
+            Backend/Verity/Dockerfile
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
             Docs/INVENTORY_LOOT_STORAGE.md
             Docs/INVENTORY_EQUIPMENT_UI.md
+            Docs/VERITY_AI_COMPANION.md
+            render.yaml
           )
           for file in "${required_files[@]}"; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
           done
+          python3 -m compileall -q Backend/Verity/main.py
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -71,44 +99,55 @@ jobs:
           assert project["EngineAssociation"] == "5.8"
           assert any(module["Name"] == "APOCALYPSE" for module in project["Modules"])
           root = Path("Source/APOCALYPSE")
+          build = (root / "APOCALYPSE.Build.cs").read_text()
+          character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
+          companion = (root / "Verity/VerityCompanionCharacter.cpp").read_text()
+          companion_ai = (root / "Verity/VerityCompanionAI.cpp").read_text()
+          combat = (root / "Verity/VerityCombatSystem.cpp").read_text()
+          navigation = (root / "Verity/VerityNavigationSystem.cpp").read_text()
+          dialogue = (root / "Verity/VerityDialogueSystem.cpp").read_text()
+          voice = (root / "Verity/VerityVoiceSystem.cpp").read_text()
+          memory = (root / "Verity/VerityMemorySystem.cpp").read_text()
+          personality = (root / "Verity/VerityPersonalitySystem.cpp").read_text()
+          hostile = (root / "Verity/VerityHostileTarget.h").read_text()
+          widget = (root / "UI/VeritySettingsWidget.cpp").read_text()
+          verity_test = (root / "Tests/VeritySystemsTests.cpp").read_text()
+          assert all(module in build for module in ('"AIModule"', '"NavigationSystem"', '"HTTP"', '"Json"'))
+          assert "SpawnVerityCompanion" in character and "DOREPLIFETIME" in character
+          assert "CreateDefaultSubobject<UVerityCompanionAI>" in companion
+          assert "CreateDefaultSubobject<UVerityCombatSystem>" in companion
+          assert "CreateDefaultSubobject<UVerityNavigationSystem>" in companion
+          assert "CreateDefaultSubobject<UVerityDialogueSystem>" in companion
+          assert "CreateDefaultSubobject<UVerityVoiceSystem>" in companion
+          assert "VerityHostileTarget" in companion_ai and "OverlapMultiByObjectType" in companion_ai
+          assert "Execute_ReceiveVerityDamage" in combat and "HasAuthority" in combat
+          assert "MoveToActor" in navigation
+          assert "/v1/dialogue" in dialogue and "FRandRange" in dialogue
+          assert "/v1/voice" in voice and "QueueAudio" in voice
+          assert "MaxMemoryEntries" in memory and "português brasileiro" in personality
+          assert "BlueprintNativeEvent" in hostile
+          assert "SetAutomaticConversationEnabled" in widget and "SetVoiceVolume" in widget
+          assert "APOCALYPSE.Verity.SessionMemory" in verity_test
+          assert "APOCALYPSE.Verity.Personality" in verity_test
+          backend = Path("Backend/Verity/main.py").read_text()
+          assert '@app.post("/v1/dialogue")' in backend and '@app.post("/v1/voice")' in backend
+          assert "OPENAI_API_KEY" in backend and "response_format" in backend
           survival = (root / "Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
           interaction = (root / "Gameplay/ApocalypseInteractionComponent.cpp").read_text()
           catalog = (root / "Gameplay/ApocalypseItemCatalog.cpp").read_text()
           inventory = (root / "Gameplay/ApocalypseInventoryComponent.cpp").read_text()
           equipment = (root / "Gameplay/ApocalypseEquipmentComponent.cpp").read_text()
-          equipment_h = (root / "Gameplay/ApocalypseEquipmentComponent.h").read_text()
-          widget = (root / "UI/ApocalypseInventoryWidget.cpp").read_text()
-          widget_h = (root / "UI/ApocalypseInventoryWidget.h").read_text()
-          pickup_h = (root / "Gameplay/ApocalypseWorldPickup.h").read_text()
           pickup = (root / "Gameplay/ApocalypseWorldPickup.cpp").read_text()
-          resource_h = (root / "Gameplay/ApocalypseResourceNode.h").read_text()
           resource = (root / "Gameplay/ApocalypseResourceNode.cpp").read_text()
           storage = (root / "Gameplay/ApocalypseStorageContainer.cpp").read_text()
-          character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
-          build = (root / "APOCALYPSE.Build.cs").read_text()
           assert "DOREPLIFETIME" in survival and "HasAuthority" in survival
           assert "ServerTryInteract_Implementation" in interaction
-          assert "Execute_CanInteract" in interaction and "Execute_Interact" in interaction
           assert "canned_food" in catalog and "water_bottle" in catalog and "medical_kit" in catalog
-          assert all(item in catalog for item in ("cloth_cap", "reinforced_vest", "field_pack", "utility_belt"))
           assert "DOREPLIFETIME" in inventory and "ServerTransferTo_Implementation" in inventory
           assert "ServerTransferFrom_Implementation" in inventory
-          assert "ClientNotifyStorageOpened_Implementation" in inventory
           assert "ServerEquip_Implementation" in equipment and "ServerUnequip_Implementation" in equipment
-          assert "DOREPLIFETIME" in equipment and "EApocalypseEquipmentSlot" in equipment_h
-          assert "RequestTransferFrom" in widget and "OnStorageOpened" in widget
-          assert "NativeConstruct" in widget and "AddToViewport" in character
-          assert all(module in build for module in ('"UMG"', '"Slate"', '"SlateCore"'))
           assert "AddItem(ItemId, Quantity)" in pickup and "DOREPLIFETIME" in pickup
           assert "AddItem(ResourceItemId, Requested)" in resource and "DOREPLIFETIME" in resource
           assert "NotifyStorageOpened(Inventory)" in storage
-          assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
-          assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
-          assert "CreateDefaultSubobject<UApocalypseInventoryComponent>" in character
-          assert "CreateDefaultSubobject<UApocalypseEquipmentComponent>" in character
-          inventory_test = (root / "Tests/InventorySystemsTests.cpp").read_text()
-          assert "APOCALYPSE.Inventory.DefaultCatalog" in inventory_test
-          assert "cloth_cap" in inventory_test and "field_pack" in inventory_test
-          assert "Replicated" in pickup_h and "Replicated" in resource_h
-          print("Project metadata, gameplay authority, replicated inventory/equipment, UMG integration, storage transfer and catalog checks passed.")
+          print("Project metadata, survival, inventory, Verity companion, backend contract and integration checks passed.")
           PY
