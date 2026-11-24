@@ -45,6 +45,18 @@ void UApocalypseInventoryWidget::NativeConstruct()
     Root->AddChild(ItemSelector);
     ItemSelector->OnSelectionChanged.AddDynamic(this, &UApocalypseInventoryWidget::HandleSelectionChanged);
 
+    ItemDetailsText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    Root->AddChild(ItemDetailsText);
+
+    EquipmentSlotSelector = WidgetTree->ConstructWidget<UComboBoxString>(UComboBoxString::StaticClass());
+    EquipmentSlotSelector->AddOption(TEXT("Cabeça|0"));
+    EquipmentSlotSelector->AddOption(TEXT("Corpo|1"));
+    EquipmentSlotSelector->AddOption(TEXT("Mochila|2"));
+    EquipmentSlotSelector->AddOption(TEXT("Utilitário|3"));
+    EquipmentSlotSelector->SetSelectedOption(TEXT("Cabeça|0"));
+    EquipmentSlotSelector->OnSelectionChanged.AddDynamic(this, &UApocalypseInventoryWidget::HandleEquipmentSlotChanged);
+    Root->AddChild(EquipmentSlotSelector);
+
     EquipmentText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Root->AddChild(EquipmentText);
     StorageText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
@@ -54,10 +66,12 @@ void UApocalypseInventoryWidget::NativeConstruct()
 
     ConsumeButton = AddActionButton(WidgetTree, Root, TEXT("Consumir 1 unidade"));
     EquipButton = AddActionButton(WidgetTree, Root, TEXT("Equipar item selecionado"));
+    UnequipButton = AddActionButton(WidgetTree, Root, TEXT("Desequipar slot selecionado"));
     StoreButton = AddActionButton(WidgetTree, Root, TEXT("Guardar 1 unidade"));
     TakeButton = AddActionButton(WidgetTree, Root, TEXT("Retirar 1 unidade"));
     ConsumeButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleConsume);
     EquipButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleEquip);
+    UnequipButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleUnequip);
     StoreButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleStore);
     TakeButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleTake);
     Refresh();
@@ -95,6 +109,22 @@ void UApocalypseInventoryWidget::HandleSelectionChanged(FString Selected, ESelec
 {
     const int32 Separator = Selected.Find(TEXT("|"));
     SelectedItemId = Separator == INDEX_NONE ? NAME_None : FName(*Selected.Left(Separator));
+    if (ItemDetailsText && Inventory && !SelectedItemId.IsNone())
+    {
+        const UApocalypseItemCatalog* Catalog = Inventory->GetCatalog();
+        const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(SelectedItemId) : nullptr;
+        ItemDetailsText->SetText(Definition ? Definition->DisplayName :
+            FText::FromName(SelectedItemId));
+    }
+}
+
+void UApocalypseInventoryWidget::HandleEquipmentSlotChanged(FString Selected, ESelectInfo::Type SelectionType)
+{
+    const int32 Separator = Selected.Find(TEXT("|"));
+    if (Separator == INDEX_NONE) return;
+    const int32 SlotValue = FCString::Atoi(*Selected.Mid(Separator + 1));
+    if (SlotValue >= 0 && SlotValue <= 3)
+        SelectedEquipmentSlot = static_cast<EApocalypseEquipmentSlot>(SlotValue);
 }
 
 void UApocalypseInventoryWidget::HandleConsume()
@@ -109,6 +139,13 @@ void UApocalypseInventoryWidget::HandleEquip()
     if (!Equipment || SelectedItemId.IsNone()) return;
     Equipment->RequestEquip(SelectedItemId);
     SetStatus(FText::FromString(TEXT("Pedido de equipamento enviado ao servidor.")));
+}
+
+void UApocalypseInventoryWidget::HandleUnequip()
+{
+    if (!Equipment) return;
+    Equipment->RequestUnequip(SelectedEquipmentSlot);
+    SetStatus(FText::FromString(TEXT("Pedido para desequipar enviado ao servidor.")));
 }
 
 void UApocalypseInventoryWidget::HandleStore()
@@ -156,7 +193,12 @@ void UApocalypseInventoryWidget::Refresh()
         for (const FApocalypseInventoryStack& Stack : Inventory->GetItems())
         {
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
-            const FString Option = FString::Printf(TEXT("%s|%d"), *Stack.ItemId.ToString(), Stack.Quantity);
+            const UApocalypseItemCatalog* Catalog = Inventory->GetCatalog();
+            const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(Stack.ItemId) : nullptr;
+            const FString DisplayName = Definition && !Definition->DisplayName.IsEmpty()
+                ? Definition->DisplayName.ToString() : Stack.ItemId.ToString();
+            const FString Option = FString::Printf(TEXT("%s  x%d|%s"), *DisplayName,
+                Stack.Quantity, *Stack.ItemId.ToString());
             ItemSelector->AddOption(Option);
             if (SelectedItemId.IsNone() || Stack.ItemId.ToString() == PreviousSelection)
                 SelectedItemId = Stack.ItemId;
@@ -165,12 +207,18 @@ void UApocalypseInventoryWidget::Refresh()
 
     if (!SelectedItemId.IsNone())
     {
-        const FString Prefix = SelectedItemId.ToString() + TEXT("|");
+        const FString Suffix = TEXT("|") + SelectedItemId.ToString();
         for (int32 Index = 0; Index < ItemSelector->GetOptionCount(); ++Index)
         {
             const FString Option = ItemSelector->GetOptionAtIndex(Index);
-            if (Option.StartsWith(Prefix)) { ItemSelector->SetSelectedOption(Option); break; }
+            if (Option.EndsWith(Suffix)) { ItemSelector->SetSelectedOption(Option); break; }
         }
+    }
+    if (ItemDetailsText)
+    {
+        const UApocalypseItemCatalog* Catalog = Inventory ? Inventory->GetCatalog() : nullptr;
+        const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(SelectedItemId) : nullptr;
+        ItemDetailsText->SetText(Definition ? Definition->DisplayName : FText::FromString(TEXT("Nenhum item selecionado")));
     }
 
     if (EquipmentText && Equipment)
