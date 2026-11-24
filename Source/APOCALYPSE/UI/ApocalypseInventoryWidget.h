@@ -1,12 +1,12 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/ComboBoxString.h"
 #include "Gameplay/ApocalypseInventoryComponent.h"
 #include "Gameplay/ApocalypseEquipmentComponent.h"
 #include "ApocalypseInventoryWidget.generated.h"
 
 class UButton;
-class UComboBoxString;
 class UTextBlock;
 class UVerticalBox;
 
