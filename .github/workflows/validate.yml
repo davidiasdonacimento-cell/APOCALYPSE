@@ -98,12 +98,14 @@ jobs:
           root = Path("Source/APOCALYPSE")
           build = (root / "APOCALYPSE.Build.cs").read_text()
           character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
+          character_h = (root / "Characters/ApocalypseCharacter.h").read_text()
           companion = (root / "Verity/VerityCompanionCharacter.cpp").read_text()
           companion_h = (root / "Verity/VerityCompanionCharacter.h").read_text()
           companion_ai = (root / "Verity/VerityCompanionAI.cpp").read_text()
           combat = (root / "Verity/VerityCombatSystem.cpp").read_text()
           navigation = (root / "Verity/VerityNavigationSystem.cpp").read_text()
           dialogue = (root / "Verity/VerityDialogueSystem.cpp").read_text()
+          dialogue_h = (root / "Verity/VerityDialogueSystem.h").read_text()
           voice = (root / "Verity/VerityVoiceSystem.cpp").read_text()
           memory = (root / "Verity/VerityMemorySystem.cpp").read_text()
           personality = (root / "Verity/VerityPersonalitySystem.cpp").read_text()
@@ -113,15 +115,20 @@ jobs:
           assert all(module in build for module in ('"AIModule"', '"NavigationSystem"', '"HTTP"', '"Json"'))
           assert "AndroidPlugin" in build and "Verity_UPL.xml" in build
           assert "SpawnVerityCompanion" in character and "DOREPLIFETIME" in character
+          assert "BindVerityGameEvents" in character and "HandleSurvivalChanged" in character
+          assert "HandleInventoryChanged" in character and "HandleEquipmentChanged" in character
           assert "CreateDefaultSubobject<UVerityCompanionAI>" in companion
           assert "CreateDefaultSubobject<UVerityCombatSystem>" in companion
           assert "CreateDefaultSubobject<UVerityNavigationSystem>" in companion
           assert "CreateDefaultSubobject<UVerityDialogueSystem>" in companion
           assert "CreateDefaultSubobject<UVerityVoiceSystem>" in companion
           assert "VerityHostileTarget" in companion_ai and "OverlapMultiByObjectType" in companion_ai
+          assert "NotifyGameEvent" in companion_ai and "threat_detected" in companion_ai
           assert "Execute_ReceiveVerityDamage" in combat and "HasAuthority" in combat
           assert "MoveToActor" in navigation
           assert "FRandRange" in dialogue and "BuildOfflineLine" in dialogue
+          assert "BuildLiveGameContext" in dialogue and "ClientNotifyGameEvent" in dialogue_h
+          assert "health_critical" in dialogue and "equipment_changed" in dialogue
           assert "/v1/chat/completions" in dialogue and "OptionalLocalAIUrl.IsEmpty()" in dialogue
           assert "FindJavaClass" in voice and "PLATFORM_ANDROID" in voice
           java_tts = (root / "Verity/Java/VerityTTS.java").read_text()
