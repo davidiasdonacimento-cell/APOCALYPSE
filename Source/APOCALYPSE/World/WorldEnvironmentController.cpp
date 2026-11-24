@@ -15,7 +15,6 @@ AWorldEnvironmentController::AWorldEnvironmentController()
     SkyLight = CreateDefaultSubobject<USkyLightComponent>(TEXT("SkyLight"));
     SkyLight->SetupAttachment(RootComponent);
     SkyLight->SetMobility(EComponentMobility::Movable);
-    SkyLight->bRealTimeCapture = true;
 
     SkyAtmosphere = CreateDefaultSubobject<USkyAtmosphereComponent>(TEXT("SkyAtmosphere"));
     SkyAtmosphere->SetupAttachment(RootComponent);
