@@ -9,9 +9,9 @@
 #include "Serialization/JsonWriter.h"
 #include "Dom/JsonObject.h"
 #include "TimerManager.h"
+#include "GameFramework/Pawn.h"
 
 UVerityDialogueSystem::UVerityDialogueSystem() { PrimaryComponentTick.bCanEverTick = false; }
-
 void UVerityDialogueSystem::Configure(const FString& Url, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice)
 {
     BackendBaseUrl = Url.TrimStartAndEnd();
@@ -20,28 +20,22 @@ void UVerityDialogueSystem::Configure(const FString& Url, UVerityMemorySystem* I
     Voice = InVoice;
     if (InVoice) InVoice->SetBackendBaseUrl(BackendBaseUrl);
 }
-
 void UVerityDialogueSystem::BeginPlay()
 {
     Super::BeginPlay();
-    const APawn* OwnerPawn = Cast<APawn>(GetOwner());
     const APawn* PlayerOwner = GetOwner() ? Cast<APawn>(GetOwner()->GetOwner()) : nullptr;
-    if ((OwnerPawn && OwnerPawn->IsLocallyControlled()) || (PlayerOwner && PlayerOwner->IsLocallyControlled()))
-        ScheduleNextConversation(18.0f);
+    if (PlayerOwner && PlayerOwner->IsLocallyControlled()) ScheduleNextConversation(18.0f);
 }
-
 void UVerityDialogueSystem::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(ConversationTimer);
     Super::EndPlay(EndPlayReason);
 }
-
 float UVerityDialogueSystem::NextConversationDelay() const { return FMath::FRandRange(48.0f, 78.0f); }
 void UVerityDialogueSystem::ScheduleNextConversation(float Delay)
 {
     if (GetWorld()) GetWorld()->GetTimerManager().SetTimer(ConversationTimer, this, &UVerityDialogueSystem::StartAutomaticConversation, Delay, false);
 }
-
 void UVerityDialogueSystem::StartAutomaticConversation()
 {
     if (!bAutomaticConversation) { ScheduleNextConversation(NextConversationDelay()); return; }
@@ -49,20 +43,17 @@ void UVerityDialogueSystem::StartAutomaticConversation()
     RequestDialogue(TEXT("ambient"), FString());
     ScheduleNextConversation(NextConversationDelay());
 }
-
 void UVerityDialogueSystem::SetAutomaticConversationEnabled(bool bEnabled)
 {
     bAutomaticConversation = bEnabled;
     if (GetWorld()) GetWorld()->GetTimerManager().ClearTimer(ConversationTimer);
     if (bEnabled) ScheduleNextConversation(8.0f);
 }
-
 void UVerityDialogueSystem::SetCombatActive(bool bActive)
 {
     bCombatActive = bActive;
     if (bActive && Voice.IsValid()) Voice->StopSpeaking();
 }
-
 void UVerityDialogueSystem::SendPlayerMessage(const FString& Message)
 {
     const FString Clean = Message.TrimStartAndEnd();
@@ -70,15 +61,10 @@ void UVerityDialogueSystem::SendPlayerMessage(const FString& Message)
     if (Memory.IsValid()) Memory->Remember(FString::Printf(TEXT("O jogador disse: %s"), *Clean.Left(240)));
     RequestDialogue(TEXT("player_message"), Clean.Left(500));
 }
-
 void UVerityDialogueSystem::RequestDialogue(const FString& Trigger, const FString& PlayerMessage)
 {
     if (bRequestPending) return;
-    if (BackendBaseUrl.IsEmpty())
-    {
-        DeliverLine(BuildOfflineLine(), true);
-        return;
-    }
+    if (BackendBaseUrl.IsEmpty()) { DeliverLine(BuildOfflineLine(), true); return; }
 
     TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
     Payload->SetStringField(TEXT("trigger"), Trigger);
@@ -90,44 +76,45 @@ void UVerityDialogueSystem::RequestDialogue(const FString& Trigger, const FStrin
     FJsonSerializer::Serialize(Payload, Writer);
 
     bRequestPending = true;
+    TWeakObjectPtr<UVerityDialogueSystem> WeakThis(this);
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
     Request->SetURL(BackendBaseUrl + TEXT("/v1/dialogue"));
     Request->SetVerb(TEXT("POST"));
     Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
     Request->SetTimeout(25.0f);
     Request->SetContentAsString(Body);
-    Request->OnProcessRequestComplete().BindLambda([this](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bConnected)
+    Request->OnProcessRequestComplete().BindLambda([WeakThis](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bConnected)
     {
-        bRequestPending = false;
+        UVerityDialogueSystem* Self = WeakThis.Get();
+        if (!Self) return;
+        Self->bRequestPending = false;
         if (!bConnected || !Response.IsValid() || Response->GetResponseCode() != 200)
         {
-            DeliverLine(BuildOfflineLine(), true);
+            Self->DeliverLine(Self->BuildOfflineLine(), true);
             return;
         }
         TSharedPtr<FJsonObject> Json;
         const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Response->GetContentAsString());
         if (!FJsonSerializer::Deserialize(Reader, Json) || !Json.IsValid())
         {
-            DeliverLine(BuildOfflineLine(), true);
+            Self->DeliverLine(Self->BuildOfflineLine(), true);
             return;
         }
         FString Reply;
         if (!Json->TryGetStringField(TEXT("reply"), Reply) || Reply.TrimStartAndEnd().IsEmpty())
         {
-            DeliverLine(BuildOfflineLine(), true);
+            Self->DeliverLine(Self->BuildOfflineLine(), true);
             return;
         }
-        DeliverLine(Reply.Left(700), true);
+        Self->DeliverLine(Reply.Left(700), true);
     });
     Request->ProcessRequest();
 }
-
-FString UVerityDialogueSystem::BuildOfflineLine() const
+FString UVerityDialogueSystem::BuildOfflineLine()
 {
     const EVerityMood Mood = Personality.IsValid() ? Personality->GetMood() : EVerityMood::Friendly;
     return Personality.IsValid() ? Personality->GetOfflineLine(Mood) : TEXT("Estou aqui com você.");
 }
-
 void UVerityDialogueSystem::DeliverLine(const FString& Line, bool bSpeak)
 {
     if (Line.TrimStartAndEnd().IsEmpty()) return;
