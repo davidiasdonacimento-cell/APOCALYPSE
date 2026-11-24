@@ -27,7 +27,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="Inventory") bool RemoveItem(FName ItemId, int32 Quantity);
     UFUNCTION(BlueprintCallable, Category="Inventory") bool ConsumeItem(FName ItemId);
     UFUNCTION(BlueprintCallable, Category="Inventory") void RequestTransferTo(UApocalypseInventoryComponent* Target, FName ItemId, int32 Quantity);
-    UFUNCTION(BlueprintPure, Category="Inventory") UApocalypseItemCatalog* GetCatalog() const { return ItemCatalog ? ItemCatalog : GetDefault<UApocalypseItemCatalog>(); }
+    UFUNCTION(BlueprintPure, Category="Inventory") const UApocalypseItemCatalog* GetCatalog() const { return ItemCatalog ? ItemCatalog.Get() : GetDefault<UApocalypseItemCatalog>(); }
     UFUNCTION(BlueprintCallable, Category="Inventory|Storage") void NotifyStorageOpened(UApocalypseInventoryComponent* StorageInventory);
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
