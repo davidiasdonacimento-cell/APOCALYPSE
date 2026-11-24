@@ -26,7 +26,7 @@ public:
     UFUNCTION(BlueprintCallable, Category="World|Time") void SetDayLengthMinutes(float Minutes);
     UFUNCTION(BlueprintPure, Category="World|Time") float GetTimeOfDayHours() const { return TimeOfDayHours; }
     UFUNCTION(BlueprintPure, Category="World|Time") float GetNormalizedDayTime() const { return TimeOfDayHours / 24.0f; }
-    UFUNCTION(BlueprintCallable, Category="World|Weather") void SetWeather(EApocalypseWeather NewWeather);
+    UFUNCTION(BlueprintCallable, Category="World|Weather") void SetWeather(EApocalypseWeather NewWeather);\n    UFUNCTION(BlueprintCallable, Category="World|Weather") void SetWorldSeed(int32 Seed);
     UFUNCTION(BlueprintPure, Category="World|Weather") EApocalypseWeather GetWeather() const { return CurrentWeather; }
     UFUNCTION(BlueprintCallable, Category="World|Regions") void SetRegionRegistry(UWorldRegionRegistry* Registry);
     UFUNCTION(BlueprintCallable, Category="World|Regions") void RefreshActiveRegion();
@@ -45,7 +45,7 @@ private:
     UPROPERTY() TObjectPtr<UWorldRegionDefinition> ActiveRegion;
     UPROPERTY(EditDefaultsOnly, Category="World|Time", meta=(ClampMin="5.0", ClampMax="240.0")) float DayLengthMinutes = 60.0f;
     UPROPERTY(EditDefaultsOnly, Category="World|Time", meta=(ClampMin="0.0", ClampMax="24.0")) float InitialTimeOfDayHours = 8.0f;
-    UPROPERTY(EditDefaultsOnly, Category="World|Weather", meta=(ClampMin="10.0")) float WeatherCheckIntervalSeconds = 120.0f;
+    UPROPERTY(EditDefaultsOnly, Category="World|Weather", meta=(ClampMin="10.0")) float WeatherCheckIntervalSeconds = 120.0f;\n    UPROPERTY(EditDefaultsOnly, Category="World|Weather") int32 WorldSeed = 20261124;
     UPROPERTY(EditDefaultsOnly, Category="World|Regions", meta=(ClampMin="0.1")) float RegionCheckIntervalSeconds = 1.0f;
     float TimeOfDayHours = 8.0f;
     float EnvironmentBroadcastAccumulator = 0.0f;
