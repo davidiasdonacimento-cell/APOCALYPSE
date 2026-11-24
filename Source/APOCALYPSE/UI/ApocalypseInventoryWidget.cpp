@@ -1,14 +1,9 @@
 #include "UI/ApocalypseInventoryWidget.h"
 #include "Components/Button.h"
 #include "Components/ComboBoxString.h"
-#include "Components/HorizontalBox.h"
-#include "Components/HorizontalBoxSlot.h"
-#include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "Components/VerticalBox.h"
-#include "Components/VerticalBoxSlot.h"
 #include "Blueprint/WidgetTree.h"
-#include "Gameplay/ApocalypseItemCatalog.h"
 
 namespace
 {
@@ -37,8 +32,8 @@ namespace
 void UApocalypseInventoryWidget::NativeConstruct()
 {
     Super::NativeConstruct();
-
     if (!WidgetTree) return;
+
     UVerticalBox* Root = WidgetTree->ConstructWidget<UVerticalBox>(UVerticalBox::StaticClass());
     WidgetTree->RootWidget = Root;
 
@@ -52,10 +47,8 @@ void UApocalypseInventoryWidget::NativeConstruct()
 
     EquipmentText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Root->AddChild(EquipmentText);
-
     StorageText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Root->AddChild(StorageText);
-
     StatusText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     Root->AddChild(StatusText);
 
@@ -67,9 +60,8 @@ void UApocalypseInventoryWidget::NativeConstruct()
     EquipButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleEquip);
     StoreButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleStore);
     TakeButton->OnClicked.AddDynamic(this, &UApocalypseInventoryWidget::HandleTake);
-
-    SetStatus(FText::FromString(TEXT("Selecione um item para ver as ações.")));
     Refresh();
+    SetStatus(FText::FromString(TEXT("Selecione um item para ver as ações.")));
 }
 
 void UApocalypseInventoryWidget::SetInventoryContext(UApocalypseInventoryComponent* InInventory,
@@ -82,9 +74,12 @@ void UApocalypseInventoryWidget::SetInventoryContext(UApocalypseInventoryCompone
     }
     if (Equipment)
         Equipment->OnEquipmentChanged.RemoveDynamic(this, &UApocalypseInventoryWidget::HandleEquipmentChanged);
+    if (OpenStorage)
+        OpenStorage->OnInventoryChanged.RemoveDynamic(this, &UApocalypseInventoryWidget::HandleInventoryChanged);
 
     Inventory = InInventory;
     Equipment = InEquipment;
+    OpenStorage = nullptr;
 
     if (Inventory)
     {
@@ -100,36 +95,34 @@ void UApocalypseInventoryWidget::HandleSelectionChanged(FString Selected, ESelec
 {
     const int32 Separator = Selected.Find(TEXT("|"));
     SelectedItemId = Separator == INDEX_NONE ? NAME_None : FName(*Selected.Left(Separator));
-    Refresh();
 }
 
 void UApocalypseInventoryWidget::HandleConsume()
 {
     if (!Inventory || SelectedItemId.IsNone()) return;
     Inventory->ConsumeItem(SelectedItemId);
-    SetStatus(FText::FromString(TEXT("Solicitação de consumo enviada.")));
-    Refresh();
+    SetStatus(FText::FromString(TEXT("Pedido de consumo enviado ao servidor.")));
 }
 
 void UApocalypseInventoryWidget::HandleEquip()
 {
     if (!Equipment || SelectedItemId.IsNone()) return;
     Equipment->RequestEquip(SelectedItemId);
-    SetStatus(FText::FromString(TEXT("Solicitação de equipamento enviada.")));
+    SetStatus(FText::FromString(TEXT("Pedido de equipamento enviado ao servidor.")));
 }
 
 void UApocalypseInventoryWidget::HandleStore()
 {
     if (!Inventory || !OpenStorage || SelectedItemId.IsNone()) return;
     Inventory->RequestTransferTo(OpenStorage, SelectedItemId, 1);
-    SetStatus(FText::FromString(TEXT("Solicitação para guardar enviada.")));
+    SetStatus(FText::FromString(TEXT("Pedido para guardar enviado ao servidor.")));
 }
 
 void UApocalypseInventoryWidget::HandleTake()
 {
     if (!Inventory || !OpenStorage || SelectedItemId.IsNone()) return;
-    OpenStorage->RequestTransferTo(Inventory, SelectedItemId, 1);
-    SetStatus(FText::FromString(TEXT("Solicitação para retirar enviada.")));
+    Inventory->RequestTransferFrom(OpenStorage, SelectedItemId, 1);
+    SetStatus(FText::FromString(TEXT("Pedido para retirar enviado ao servidor.")));
 }
 
 void UApocalypseInventoryWidget::HandleInventoryChanged() { Refresh(); }
@@ -137,7 +130,11 @@ void UApocalypseInventoryWidget::HandleEquipmentChanged() { Refresh(); }
 
 void UApocalypseInventoryWidget::HandleStorageOpened(UApocalypseInventoryComponent* StorageInventory)
 {
+    if (OpenStorage)
+        OpenStorage->OnInventoryChanged.RemoveDynamic(this, &UApocalypseInventoryWidget::HandleInventoryChanged);
     OpenStorage = StorageInventory;
+    if (OpenStorage)
+        OpenStorage->OnInventoryChanged.AddDynamic(this, &UApocalypseInventoryWidget::HandleInventoryChanged);
     Refresh();
     SetStatus(FText::FromString(TEXT("Armazenamento conectado.")));
 }
@@ -161,8 +158,8 @@ void UApocalypseInventoryWidget::Refresh()
             if (Stack.ItemId.IsNone() || Stack.Quantity <= 0) continue;
             const FString Option = FString::Printf(TEXT("%s|%d"), *Stack.ItemId.ToString(), Stack.Quantity);
             ItemSelector->AddOption(Option);
-            if (SelectedItemId.IsNone()) SelectedItemId = Stack.ItemId;
-            if (Stack.ItemId.ToString() == PreviousSelection) SelectedItemId = Stack.ItemId;
+            if (SelectedItemId.IsNone() || Stack.ItemId.ToString() == PreviousSelection)
+                SelectedItemId = Stack.ItemId;
         }
     }
 
@@ -176,25 +173,25 @@ void UApocalypseInventoryWidget::Refresh()
         }
     }
 
-    if (Equipment && EquipmentText)
+    if (EquipmentText && Equipment)
     {
-        FString Summary = TEXT("EQUIPAMENTOS  ");
+        FString Summary = TEXT("EQUIPAMENTOS");
         for (int32 Slot = 0; Slot < 4; ++Slot)
         {
             const EApocalypseEquipmentSlot Type = static_cast<EApocalypseEquipmentSlot>(Slot);
             const FName ItemId = Equipment->GetEquippedItem(Type);
-            Summary += FString::Printf(TEXT("\n%s: %s"), *SlotLabel(Type), ItemId.IsNone() ? TEXT("Vazio") : *ItemId.ToString());
+            Summary += FString::Printf(TEXT("\n%s: %s"), *SlotLabel(Type),
+                ItemId.IsNone() ? TEXT("Vazio") : *ItemId.ToString());
         }
         EquipmentText->SetText(FText::FromString(Summary));
     }
 
     if (StorageText)
     {
-        FString Summary = OpenStorage ? TEXT("ARMAZENAMENTO CONECTADO") : TEXT("ARMAZENAMENTO: aproxime-se de um baú e interaja");
+        FString Summary = OpenStorage ? TEXT("ARMAZENAMENTO CONECTADO") :
+            TEXT("ARMAZENAMENTO: aproxime-se de um baú e interaja");
         if (OpenStorage)
-        {
-            Summary += FString::Printf(TEXT("\nItens no baú: %d"), OpenStorage->GetItems().Num());
-        }
+            Summary += FString::Printf(TEXT("\nPilhas no baú: %d"), OpenStorage->GetItems().Num());
         StorageText->SetText(FText::FromString(Summary));
     }
 }
