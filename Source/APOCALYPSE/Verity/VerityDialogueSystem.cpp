@@ -10,8 +10,13 @@
 #include "Dom/JsonObject.h"
 #include "TimerManager.h"
 #include "GameFramework/Pawn.h"
+#include "Net/UnrealNetwork.h"
 
-UVerityDialogueSystem::UVerityDialogueSystem() { PrimaryComponentTick.bCanEverTick = false; }
+UVerityDialogueSystem::UVerityDialogueSystem()
+{
+    PrimaryComponentTick.bCanEverTick = false;
+    SetIsReplicatedByDefault(true);
+}
 void UVerityDialogueSystem::Configure(const FString& Url, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice)
 {
     BackendBaseUrl = Url.TrimStartAndEnd();
@@ -54,6 +59,10 @@ void UVerityDialogueSystem::SetCombatActive(bool bActive)
     bCombatActive = bActive;
     if (bActive && Voice.IsValid()) Voice->StopSpeaking();
 }
+void UVerityDialogueSystem::OnRep_CombatActive()
+{
+    if (bCombatActive && Voice.IsValid()) Voice->StopSpeaking();
+}
 void UVerityDialogueSystem::SendPlayerMessage(const FString& Message)
 {
     const FString Clean = Message.TrimStartAndEnd();
@@ -65,7 +74,6 @@ void UVerityDialogueSystem::RequestDialogue(const FString& Trigger, const FStrin
 {
     if (bRequestPending) return;
     if (BackendBaseUrl.IsEmpty()) { DeliverLine(BuildOfflineLine(), true); return; }
-
     TSharedRef<FJsonObject> Payload = MakeShared<FJsonObject>();
     Payload->SetStringField(TEXT("trigger"), Trigger);
     Payload->SetStringField(TEXT("player_message"), PlayerMessage);
@@ -74,7 +82,6 @@ void UVerityDialogueSystem::RequestDialogue(const FString& Trigger, const FStrin
     FString Body;
     TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
     FJsonSerializer::Serialize(Payload, Writer);
-
     bRequestPending = true;
     TWeakObjectPtr<UVerityDialogueSystem> WeakThis(this);
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
@@ -122,4 +129,9 @@ void UVerityDialogueSystem::DeliverLine(const FString& Line, bool bSpeak)
     if (Memory.IsValid()) Memory->Remember(FString::Printf(TEXT("VERITY comentou: %s"), *Line.Left(220)));
     OnDialogueLine.Broadcast(LastLine);
     if (bSpeak && Voice.IsValid()) Voice->Speak(LastLine);
+}
+void UVerityDialogueSystem::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(UVerityDialogueSystem, bCombatActive);
 }
