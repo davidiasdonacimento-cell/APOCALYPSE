@@ -18,6 +18,7 @@ public:
     void SetCompanion(AVerityCompanionCharacter* InCompanion);
 protected:
     virtual void NativeConstruct() override;
+    virtual void NativeDestruct() override;
 private:
     UPROPERTY(Transient) TObjectPtr<AVerityCompanionCharacter> Companion;
     UPROPERTY(Transient) TObjectPtr<UCheckBox> CompanionToggle;
