@@ -3,7 +3,6 @@
 #include "GameFramework/Actor.h"
 #include "Gameplay/ApocalypseInteractable.h"
 #include "ApocalypseResourceNode.generated.h"
-
 UCLASS()
 class APOCALYPSE_API AApocalypseResourceNode : public AActor, public IApocalypseInteractable
 {
@@ -17,4 +16,6 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Resource", meta=(ClampMin="1")) int32 YieldPerHarvest = 1;
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Resource") TObjectPtr<USceneComponent> SceneRoot;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Resource") TObjectPtr<class UBoxComponent> InteractionCollision;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Resource") TObjectPtr<class UStaticMeshComponent> VisualMesh;
 };
