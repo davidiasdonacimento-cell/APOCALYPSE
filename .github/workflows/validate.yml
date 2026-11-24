@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate required Unreal and gameplay files
+      - name: Validate Unreal and gameplay source
         shell: bash
         run: |
           set -euo pipefail
@@ -32,6 +32,16 @@ jobs:
             Source/APOCALYPSE/Gameplay/ApocalypseInteractable.h
             Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.h
             Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseItemCatalog.h
+            Source/APOCALYPSE/Gameplay/ApocalypseItemCatalog.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseInventoryComponent.h
+            Source/APOCALYPSE/Gameplay/ApocalypseInventoryComponent.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseWorldPickup.h
+            Source/APOCALYPSE/Gameplay/ApocalypseWorldPickup.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseResourceNode.h
+            Source/APOCALYPSE/Gameplay/ApocalypseResourceNode.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseStorageContainer.h
+            Source/APOCALYPSE/Gameplay/ApocalypseStorageContainer.cpp
             Source/APOCALYPSE/World/ApocalypseWorldTypes.h
             Source/APOCALYPSE/World/ApocalypseWorldSubsystem.h
             Source/APOCALYPSE/World/ApocalypseWorldSubsystem.cpp
@@ -40,9 +50,11 @@ jobs:
             Source/APOCALYPSE/World/WorldEnvironmentController.h
             Source/APOCALYPSE/World/WorldPOIRegistry.h
             Source/APOCALYPSE/Tests/WorldSystemsTests.cpp
+            Source/APOCALYPSE/Tests/InventorySystemsTests.cpp
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
+            Docs/INVENTORY_LOOT_STORAGE.md
           )
           for file in "${required_files[@]}"; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
@@ -53,13 +65,32 @@ jobs:
           project = json.loads(Path("APOCALYPSE.uproject").read_text())
           assert project["EngineAssociation"] == "5.8"
           assert any(module["Name"] == "APOCALYPSE" for module in project["Modules"])
-          survival = Path("Source/APOCALYPSE/Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
-          interaction = Path("Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.cpp").read_text()
-          character = Path("Source/APOCALYPSE/Characters/ApocalypseCharacter.cpp").read_text()
+          root = Path("Source/APOCALYPSE")
+          survival = (root / "Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
+          interaction = (root / "Gameplay/ApocalypseInteractionComponent.cpp").read_text()
+          catalog = (root / "Gameplay/ApocalypseItemCatalog.cpp").read_text()
+          inventory = (root / "Gameplay/ApocalypseInventoryComponent.cpp").read_text()
+          pickup_h = (root / "Gameplay/ApocalypseWorldPickup.h").read_text()
+          pickup = (root / "Gameplay/ApocalypseWorldPickup.cpp").read_text()
+          resource_h = (root / "Gameplay/ApocalypseResourceNode.h").read_text()
+          resource = (root / "Gameplay/ApocalypseResourceNode.cpp").read_text()
+          storage = (root / "Gameplay/ApocalypseStorageContainer.cpp").read_text()
+          character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
           assert "DOREPLIFETIME" in survival and "HasAuthority" in survival
           assert "ServerTryInteract_Implementation" in interaction
           assert "Execute_CanInteract" in interaction and "Execute_Interact" in interaction
+          assert "canned_food" in catalog and "water_bottle" in catalog and "medical_kit" in catalog
+          assert "DOREPLIFETIME" in inventory and "ServerTransferTo_Implementation" in inventory
+          assert "ClientNotifyStorageOpened_Implementation" in inventory
+          assert "AddItem(ItemId, Quantity)" in pickup and "DOREPLIFETIME" in pickup
+          assert "AddItem(ResourceItemId, Requested)" in resource and "DOREPLIFETIME" in resource
+          assert "NotifyStorageOpened(Inventory)" in storage
           assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
-          print("Project descriptor, survival authority/replication, and interaction integration checks passed.")
+          assert "CreateDefaultSubobject<UApocalypseInventoryComponent>" in character
+          inventory_test = (root / "Tests/InventorySystemsTests.cpp").read_text()
+          assert "APOCALYPSE.Inventory.DefaultCatalog" in inventory_test
+          assert "canned_food" in inventory_test and "water_bottle" in inventory_test
+          assert "Replicated" in pickup_h and "Replicated" in resource_h
+          print("Project descriptor, authority, item catalog, inventory replication, loot, storage RPC and character integration checks passed.")
           PY
