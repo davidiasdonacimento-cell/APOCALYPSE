@@ -36,6 +36,10 @@ jobs:
             Source/APOCALYPSE/Gameplay/ApocalypseItemCatalog.cpp
             Source/APOCALYPSE/Gameplay/ApocalypseInventoryComponent.h
             Source/APOCALYPSE/Gameplay/ApocalypseInventoryComponent.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseEquipmentComponent.h
+            Source/APOCALYPSE/Gameplay/ApocalypseEquipmentComponent.cpp
+            Source/APOCALYPSE/UI/ApocalypseInventoryWidget.h
+            Source/APOCALYPSE/UI/ApocalypseInventoryWidget.cpp
             Source/APOCALYPSE/Gameplay/ApocalypseWorldPickup.h
             Source/APOCALYPSE/Gameplay/ApocalypseWorldPickup.cpp
             Source/APOCALYPSE/Gameplay/ApocalypseResourceNode.h
@@ -55,6 +59,7 @@ jobs:
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
             Docs/INVENTORY_LOOT_STORAGE.md
+            Docs/INVENTORY_EQUIPMENT_UI.md
           )
           for file in "${required_files[@]}"; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
@@ -70,27 +75,40 @@ jobs:
           interaction = (root / "Gameplay/ApocalypseInteractionComponent.cpp").read_text()
           catalog = (root / "Gameplay/ApocalypseItemCatalog.cpp").read_text()
           inventory = (root / "Gameplay/ApocalypseInventoryComponent.cpp").read_text()
+          equipment = (root / "Gameplay/ApocalypseEquipmentComponent.cpp").read_text()
+          equipment_h = (root / "Gameplay/ApocalypseEquipmentComponent.h").read_text()
+          widget = (root / "UI/ApocalypseInventoryWidget.cpp").read_text()
+          widget_h = (root / "UI/ApocalypseInventoryWidget.h").read_text()
           pickup_h = (root / "Gameplay/ApocalypseWorldPickup.h").read_text()
           pickup = (root / "Gameplay/ApocalypseWorldPickup.cpp").read_text()
           resource_h = (root / "Gameplay/ApocalypseResourceNode.h").read_text()
           resource = (root / "Gameplay/ApocalypseResourceNode.cpp").read_text()
           storage = (root / "Gameplay/ApocalypseStorageContainer.cpp").read_text()
           character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
+          build = (root / "APOCALYPSE.Build.cs").read_text()
           assert "DOREPLIFETIME" in survival and "HasAuthority" in survival
           assert "ServerTryInteract_Implementation" in interaction
           assert "Execute_CanInteract" in interaction and "Execute_Interact" in interaction
           assert "canned_food" in catalog and "water_bottle" in catalog and "medical_kit" in catalog
+          assert all(item in catalog for item in ("cloth_cap", "reinforced_vest", "field_pack", "utility_belt"))
           assert "DOREPLIFETIME" in inventory and "ServerTransferTo_Implementation" in inventory
+          assert "ServerTransferFrom_Implementation" in inventory
           assert "ClientNotifyStorageOpened_Implementation" in inventory
+          assert "ServerEquip_Implementation" in equipment and "ServerUnequip_Implementation" in equipment
+          assert "DOREPLIFETIME" in equipment and "EApocalypseEquipmentSlot" in equipment_h
+          assert "RequestTransferFrom" in widget and "OnStorageOpened" in widget
+          assert "NativeConstruct" in widget and "AddToViewport" in character
+          assert all(module in build for module in ('"UMG"', '"Slate"', '"SlateCore"'))
           assert "AddItem(ItemId, Quantity)" in pickup and "DOREPLIFETIME" in pickup
           assert "AddItem(ResourceItemId, Requested)" in resource and "DOREPLIFETIME" in resource
           assert "NotifyStorageOpened(Inventory)" in storage
           assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInventoryComponent>" in character
+          assert "CreateDefaultSubobject<UApocalypseEquipmentComponent>" in character
           inventory_test = (root / "Tests/InventorySystemsTests.cpp").read_text()
           assert "APOCALYPSE.Inventory.DefaultCatalog" in inventory_test
-          assert "canned_food" in inventory_test and "water_bottle" in inventory_test
+          assert "cloth_cap" in inventory_test and "field_pack" in inventory_test
           assert "Replicated" in pickup_h and "Replicated" in resource_h
-          print("Project descriptor, authority, item catalog, inventory replication, loot, storage RPC and character integration checks passed.")
+          print("Project metadata, gameplay authority, replicated inventory/equipment, UMG integration, storage transfer and catalog checks passed.")
           PY

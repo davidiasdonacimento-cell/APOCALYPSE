@@ -2,8 +2,13 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "ApocalypseItemCatalog.generated.h"
+
 UENUM(BlueprintType)
-enum class EApocalypseItemCategory : uint8 { Resource, Food, Water, Medical, Material, Quest };
+enum class EApocalypseItemCategory : uint8 { Resource, Food, Water, Medical, Material, Quest, Equipment };
+
+UENUM(BlueprintType)
+enum class EApocalypseEquipmentSlot : uint8 { Head, Body, Backpack, Utility };
+
 USTRUCT(BlueprintType)
 struct FApocalypseItemDefinition
 {
@@ -15,7 +20,10 @@ struct FApocalypseItemDefinition
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin="0.0")) float HungerRestoration = 0.0f;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin="0.0")) float ThirstRestoration = 0.0f;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin="0.0")) float HealthRestoration = 0.0f;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Equipment", meta=(EditCondition="Category == EApocalypseItemCategory::Equipment"))
+    EApocalypseEquipmentSlot EquipmentSlot = EApocalypseEquipmentSlot::Utility;
 };
+
 UCLASS(BlueprintType)
 class APOCALYPSE_API UApocalypseItemCatalog : public UDataAsset
 {
@@ -23,5 +31,6 @@ class APOCALYPSE_API UApocalypseItemCatalog : public UDataAsset
 public:
     UApocalypseItemCatalog();
     const FApocalypseItemDefinition* FindItem(FName ItemId) const;
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory") TArray<FApocalypseItemDefinition> Items;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory")
+    TArray<FApocalypseItemDefinition> Items;
 };
