@@ -16,7 +16,7 @@ class APOCALYPSE_API UVerityDialogueSystem : public UActorComponent
 public:
     UVerityDialogueSystem();
     UPROPERTY(BlueprintAssignable, Category="VERITY|Dialogue") FOnVerityDialogueLine OnDialogueLine;
-    void Configure(const FString& Url, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice);
+    void Configure(const FString& OptionalLocalAIUrl, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SendPlayerMessage(const FString& Message);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SetAutomaticConversationEnabled(bool bEnabled);
     UFUNCTION(BlueprintCallable, Category="VERITY|Dialogue") void SetCombatActive(bool bActive);
@@ -27,7 +27,8 @@ protected:
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
-    FString BackendBaseUrl;
+    FString OptionalLocalAIUrl;
+    FString LocalAIModel = TEXT("qwen2.5:1.5b");
     TWeakObjectPtr<UVerityMemorySystem> Memory;
     TWeakObjectPtr<UVerityPersonalitySystem> Personality;
     TWeakObjectPtr<UVerityVoiceSystem> Voice;
@@ -42,5 +43,5 @@ private:
     void StartAutomaticConversation();
     void RequestDialogue(const FString& Trigger, const FString& PlayerMessage);
     void DeliverLine(const FString& Line, bool bSpeak);
-    FString BuildOfflineLine();
+    FString BuildOfflineLine(const FString& Trigger, const FString& PlayerMessage) const;
 };
