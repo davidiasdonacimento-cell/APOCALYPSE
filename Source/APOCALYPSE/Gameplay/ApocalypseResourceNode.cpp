@@ -2,6 +2,7 @@
 #include "Gameplay/ApocalypseInventoryComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 AApocalypseResourceNode::AApocalypseResourceNode()
 {
     bReplicates = true;
@@ -30,4 +31,10 @@ void AApocalypseResourceNode::Interact_Implementation(AActor* InteractingActor)
     const int32 Requested = FMath::Min(YieldPerHarvest, RemainingQuantity);
     RemainingQuantity -= Inventory->AddItem(ResourceItemId, Requested);
     if (RemainingQuantity <= 0) Destroy();
+}
+void AApocalypseResourceNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(AApocalypseResourceNode, ResourceItemId);
+    DOREPLIFETIME(AApocalypseResourceNode, RemainingQuantity);
 }
