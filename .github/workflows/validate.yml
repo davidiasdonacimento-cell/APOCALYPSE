@@ -97,6 +97,7 @@ jobs:
           build = (root / "APOCALYPSE.Build.cs").read_text()
           character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
           companion = (root / "Verity/VerityCompanionCharacter.cpp").read_text()
+          companion_h = (root / "Verity/VerityCompanionCharacter.h").read_text()
           companion_ai = (root / "Verity/VerityCompanionAI.cpp").read_text()
           combat = (root / "Verity/VerityCombatSystem.cpp").read_text()
           navigation = (root / "Verity/VerityNavigationSystem.cpp").read_text()
@@ -124,7 +125,7 @@ jobs:
           upl = (root / "Verity/Verity_UPL.xml").read_text()
           assert "TextToSpeech" in java_tts and 'new Locale("pt", "BR")' in java_tts
           assert "gameActivityOnCreateAdditions" in upl and "addJavaSource" in upl
-          assert "LocalAIBaseUrl" in companion and "AIBackendBaseUrl" not in companion
+          assert "LocalAIBaseUrl" in companion_h and "AIBackendBaseUrl" not in companion_h
           assert "MaxMemoryEntries" in memory and "português brasileiro" in personality
           assert "BlueprintNativeEvent" in hostile
           assert "SetAutomaticConversationEnabled" in widget and "SetVoiceVolume" in widget
