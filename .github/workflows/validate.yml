@@ -67,21 +67,26 @@ jobs:
           root = Path("Source/APOCALYPSE")
           survival = (root / "Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
           interaction = (root / "Gameplay/ApocalypseInteractionComponent.cpp").read_text()
+          catalog = (root / "Gameplay/ApocalypseItemCatalog.cpp").read_text()
           inventory = (root / "Gameplay/ApocalypseInventoryComponent.cpp").read_text()
+          pickup_h = (root / "Gameplay/ApocalypseWorldPickup.h").read_text()
           pickup = (root / "Gameplay/ApocalypseWorldPickup.cpp").read_text()
+          resource_h = (root / "Gameplay/ApocalypseResourceNode.h").read_text()
           resource = (root / "Gameplay/ApocalypseResourceNode.cpp").read_text()
           storage = (root / "Gameplay/ApocalypseStorageContainer.cpp").read_text()
           character = (root / "Characters/ApocalypseCharacter.cpp").read_text()
           assert "DOREPLIFETIME" in survival and "HasAuthority" in survival
           assert "ServerTryInteract_Implementation" in interaction
           assert "Execute_CanInteract" in interaction and "Execute_Interact" in interaction
+          assert "canned_food" in catalog and "water_bottle" in catalog and "medical_kit" in catalog
           assert "DOREPLIFETIME" in inventory and "ServerTransferTo_Implementation" in inventory
           assert "ClientNotifyStorageOpened_Implementation" in inventory
-          assert "AddItem(ItemId, Quantity)" in pickup
-          assert "AddItem(ResourceItemId, Requested)" in resource
+          assert "AddItem(ItemId, Quantity)" in pickup and "DOREPLIFETIME" in pickup
+          assert "AddItem(ResourceItemId, Requested)" in resource and "DOREPLIFETIME" in resource
           assert "NotifyStorageOpened(Inventory)" in storage
           assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInventoryComponent>" in character
-          print("Project descriptor, server authority, replicated inventory, loot, storage RPC and character integration checks passed.")
+          assert "Replicated" in pickup_h and "Replicated" in resource_h
+          print("Project descriptor, authority, item catalog, inventory replication, loot, storage RPC and character integration checks passed.")
           PY
