@@ -27,7 +27,6 @@ AVerityCompanionCharacter::AVerityCompanionCharacter()
     GetCharacterMovement()->bUseControllerDesiredRotation = true;
     bUseControllerRotationYaw = false;
 }
-
 void AVerityCompanionCharacter::BeginPlay()
 {
     Super::BeginPlay();
@@ -35,41 +34,34 @@ void AVerityCompanionCharacter::BeginPlay()
     DialogueSystem->Configure(AIBackendBaseUrl, MemorySystem, PersonalitySystem, VoiceSystem);
     ApplyCompanionEnabled();
 }
-
 void AVerityCompanionCharacter::SetPlayerTarget(AActor* Player)
 {
     if (CompanionAI) CompanionAI->SetPlayerTarget(Player);
     if (NavigationSystem) NavigationSystem->SetFollowTarget(Player);
     if (Player) SetOwner(Player);
 }
-
 void AVerityCompanionCharacter::SetCompanionEnabled(bool bEnabled)
 {
     bCompanionEnabled = bEnabled;
     ApplyCompanionEnabled();
     if (!HasAuthority()) ServerSetCompanionEnabled(bEnabled);
 }
-
 void AVerityCompanionCharacter::ServerSetCompanionEnabled_Implementation(bool bEnabled)
 {
     bCompanionEnabled = bEnabled;
     ApplyCompanionEnabled();
     ForceNetUpdate();
 }
-
 void AVerityCompanionCharacter::ApplyCompanionEnabled()
 {
+    if (CompanionAI) CompanionAI->SetAIEnabled(bCompanionEnabled);
+    if (CombatSystem) CombatSystem->SetCombatEnabled(bCompanionEnabled);
     if (NavigationSystem) NavigationSystem->SetFollowingEnabled(bCompanionEnabled);
     SetActorHiddenInGame(!bCompanionEnabled);
     SetActorEnableCollision(bCompanionEnabled);
     if (!bCompanionEnabled && VoiceSystem) VoiceSystem->StopSpeaking();
 }
-
-void AVerityCompanionCharacter::OnRep_CompanionEnabled()
-{
-    ApplyCompanionEnabled();
-}
-
+void AVerityCompanionCharacter::OnRep_CompanionEnabled() { ApplyCompanionEnabled(); }
 void AVerityCompanionCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
