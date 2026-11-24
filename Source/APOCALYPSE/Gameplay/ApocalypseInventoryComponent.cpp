@@ -12,7 +12,7 @@ int32 UApocalypseInventoryComponent::GetItemQuantity(FName ItemId) const
 int32 UApocalypseInventoryComponent::AddItem(FName ItemId, int32 Quantity)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority() || ItemId.IsNone() || Quantity <= 0) return 0;
-    UApocalypseItemCatalog* Catalog = GetCatalog();
+    const UApocalypseItemCatalog* Catalog = GetCatalog();
     const FApocalypseItemDefinition* Definition = Catalog ? Catalog->FindItem(ItemId) : nullptr;
     if (!Definition || Definition->MaxStack <= 0) return 0;
     int32 Remaining = Quantity;
