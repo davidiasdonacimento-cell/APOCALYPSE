@@ -56,7 +56,7 @@ void UVerityDialogueSystem::SetAutomaticConversationEnabled(bool bEnabled)
 }
 void UVerityDialogueSystem::SetCombatActive(bool bActive)
 {
-    bCombatActive = bActive;
+    if (GetOwner() && GetOwner()->HasAuthority()) bCombatActive = bActive;
     if (bActive && Voice.IsValid()) Voice->StopSpeaking();
 }
 void UVerityDialogueSystem::OnRep_CombatActive()
