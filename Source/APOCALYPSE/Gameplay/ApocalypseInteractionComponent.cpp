@@ -2,6 +2,7 @@
 #include "Gameplay/ApocalypseInteractable.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/Pawn.h"
 
 UApocalypseInteractionComponent::UApocalypseInteractionComponent()
 {
@@ -19,7 +20,8 @@ void UApocalypseInteractionComponent::TickComponent(float DeltaTime, ELevelTick 
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (GetOwner() && GetOwner()->IsLocallyControlled())
+    const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn && OwnerPawn->IsLocallyControlled())
     {
         FHitResult Hit;
         AActor* NewFocus = TraceForInteractable(Hit) && Hit.GetActor() &&
@@ -35,7 +37,8 @@ void UApocalypseInteractionComponent::TickComponent(float DeltaTime, ELevelTick 
 
 void UApocalypseInteractionComponent::TryInteract()
 {
-    if (GetOwner() && GetOwner()->IsLocallyControlled())
+    const APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if (OwnerPawn && OwnerPawn->IsLocallyControlled())
     {
         ServerTryInteract();
     }
