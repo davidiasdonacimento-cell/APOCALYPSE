@@ -64,6 +64,7 @@ void UMainLobbyWidget::NativeConstruct()
     SendButton = AddChatButton(TEXT("ENVIAR"), FOnButtonClickedEvent::FDelegate::CreateUObject(this, &UMainLobbyWidget::OnSendClicked));
     EditLastButton = AddChatButton(TEXT("EDITAR MINHA ÚLTIMA MENSAGEM"), FOnButtonClickedEvent::FDelegate::CreateUObject(this, &UMainLobbyWidget::OnEditLastClicked));
     ClearChatButton = AddChatButton(TEXT("LIMPAR CONVERSA"), FOnButtonClickedEvent::FDelegate::CreateUObject(this, &UMainLobbyWidget::OnClearChatClicked));
+    VoiceToggleButton = AddChatButton(TEXT("ATIVAR/DESATIVAR VOZ"), FOnButtonClickedEvent::FDelegate::CreateUObject(this, &UMainLobbyWidget::OnVoiceToggleClicked));
     UTextBlock* PersonalTitle = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     PersonalTitle->SetText(FText::FromString(TEXT("MEU TEXTO PESSOAL (OPCIONAL)")));
     Root->AddChild(PersonalTitle);
@@ -117,6 +118,13 @@ void UMainLobbyWidget::OnClearChatClicked()
     bAwaitingClearConfirmation = false;
     Chat->ClearHistoryAfterConfirmation(true);
     SetStatus(TEXT("Histórico desta conversa foi limpo."));
+}
+void UMainLobbyWidget::OnVoiceToggleClicked()
+{
+    if (!Chat) return;
+    const bool bEnable = !Chat->IsLobbyVoiceEnabled();
+    Chat->SetLobbyVoiceEnabled(bEnable);
+    SetStatus(bEnable ? TEXT("Voz da VERITY ativada.") : TEXT("Voz da VERITY desativada."));
 }
 void UMainLobbyWidget::OnStartClicked() { StartGame(false); }
 void UMainLobbyWidget::OnContinueClicked() { StartGame(true); }

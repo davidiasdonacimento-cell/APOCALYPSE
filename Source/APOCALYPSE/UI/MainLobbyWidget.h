@@ -27,6 +27,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> ClearChatButton;
     UPROPERTY(Transient) TObjectPtr<UButton> StartButton;
     UPROPERTY(Transient) TObjectPtr<UButton> ContinueButton;
+    UPROPERTY(Transient) TObjectPtr<UButton> VoiceToggleButton;
     bool bAwaitingClearConfirmation = false;
     UFUNCTION() void OnSendClicked();
     UFUNCTION() void OnEditLastClicked();
@@ -34,6 +35,7 @@ private:
     UFUNCTION() void OnClearChatClicked();
     UFUNCTION() void OnStartClicked();
     UFUNCTION() void OnContinueClicked();
+    UFUNCTION() void OnVoiceToggleClicked();
     UFUNCTION() void OnChatUpdated();
     UFUNCTION() void OnGenerationChanged(bool bGenerating);
     void RefreshChat();

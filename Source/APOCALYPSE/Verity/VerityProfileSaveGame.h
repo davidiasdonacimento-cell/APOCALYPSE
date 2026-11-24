@@ -21,5 +21,6 @@ public:
     UPROPERTY(SaveGame, BlueprintReadOnly, Category="VERITY|Profile") TArray<FVeritySavedChatMessage> ChatHistory;
     UPROPERTY(SaveGame, BlueprintReadOnly, Category="VERITY|Profile") TArray<FString> PersistentMemories;
     UPROPERTY(SaveGame, BlueprintReadOnly, Category="VERITY|Profile") bool bHasCampaignProgress = false;
+    UPROPERTY(SaveGame, BlueprintReadOnly, Category="VERITY|Profile") bool bLobbyVoiceEnabled = true;
     UPROPERTY(SaveGame, BlueprintReadOnly, Category="VERITY|Profile") int32 SchemaVersion = 1;
 };

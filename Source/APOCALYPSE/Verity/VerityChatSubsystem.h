@@ -27,6 +27,8 @@ public:
     UFUNCTION(BlueprintCallable, Category="VERITY|Chat") void AddPersistentMemory(const FString& Memory);
     UFUNCTION(BlueprintPure, Category="VERITY|Chat") bool HasCampaignProgress() const;
     UFUNCTION(BlueprintCallable, Category="VERITY|Chat") void SetCampaignProgress(bool bHasProgress);
+    UFUNCTION(BlueprintCallable, Category="VERITY|Voice") void SetLobbyVoiceEnabled(bool bEnabled);
+    UFUNCTION(BlueprintPure, Category="VERITY|Voice") bool IsLobbyVoiceEnabled() const;
 protected:
     UPROPERTY(Config, EditDefaultsOnly, Category="VERITY|AI", meta=(ToolTip="Optional OpenAI-compatible endpoint on the player's private LAN. Empty means offline fallback.")) FString LocalAIBaseUrl;
     UPROPERTY(Config, EditDefaultsOnly, Category="VERITY|AI") FString LocalAIModel = TEXT("qwen2.5:1.5b");
@@ -39,4 +41,5 @@ private:
     void CompleteGeneration(const FString& Reply, const FString& Fallback);
     FString BuildOfflineReply(const FString& Message) const;
     void RequestGenerativeReply(const FString& Message);
+    void SpeakLobbyReply(const FString& Text);
 };

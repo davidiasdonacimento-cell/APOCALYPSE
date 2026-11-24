@@ -6,6 +6,10 @@
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
+#if PLATFORM_ANDROID
+#include "Android/AndroidApplication.h"
+#include "Android/AndroidJNI.h"
+#endif
 
 void UVerityChatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -91,6 +95,47 @@ void UVerityChatSubsystem::AddPersistentMemory(const FString& Memory)
     SaveProfile();
 }
 bool UVerityChatSubsystem::HasCampaignProgress() const { return Profile && Profile->bHasCampaignProgress; }
+bool UVerityChatSubsystem::IsLobbyVoiceEnabled() const { return Profile && Profile->bLobbyVoiceEnabled; }
+void UVerityChatSubsystem::SetLobbyVoiceEnabled(bool bEnabled)
+{
+    if (!Profile) return;
+    Profile->bLobbyVoiceEnabled = bEnabled; SaveProfile();
+#if PLATFORM_ANDROID
+    if (!bEnabled)
+    {
+        JNIEnv* Env = FAndroidApplication::GetJavaEnv();
+        if (Env)
+        {
+            jclass TTSClass = FAndroidApplication::FindJavaClass("com/epicgames/unreal/VerityTTS");
+            if (TTSClass)
+            {
+                jmethodID StopMethod = Env->GetStaticMethodID(TTSClass, "stop", "()V");
+                if (StopMethod) Env->CallStaticVoidMethod(TTSClass, StopMethod);
+                Env->DeleteLocalRef(TTSClass);
+            }
+        }
+    }
+#endif
+}
+void UVerityChatSubsystem::SpeakLobbyReply(const FString& Text)
+{
+    if (!IsLobbyVoiceEnabled() || Text.IsEmpty()) return;
+#if PLATFORM_ANDROID
+    JNIEnv* Env = FAndroidApplication::GetJavaEnv();
+    if (!Env) return;
+    jclass TTSClass = FAndroidApplication::FindJavaClass("com/epicgames/unreal/VerityTTS");
+    if (!TTSClass) return;
+    jmethodID SpeakMethod = Env->GetStaticMethodID(TTSClass, "speak", "(Ljava/lang/String;F)V");
+    if (SpeakMethod)
+    {
+        const FString Clean = Text.Left(500);
+        jstring JavaText = Env->NewStringUTF(TCHAR_TO_UTF8(*Clean));
+        Env->CallStaticVoidMethod(TTSClass, SpeakMethod, JavaText, static_cast<jfloat>(0.85f));
+        Env->DeleteLocalRef(JavaText);
+    }
+    Env->DeleteLocalRef(TTSClass);
+#endif
+}
 void UVerityChatSubsystem::SetCampaignProgress(bool bHasProgress)
 {
     if (!Profile) return;
@@ -112,6 +157,7 @@ void UVerityChatSubsystem::CompleteGeneration(const FString& Reply, const FStrin
     Profile->ChatHistory.Add(Entry);
     if (Profile->ChatHistory.Num() > 120) Profile->ChatHistory.RemoveAt(0, Profile->ChatHistory.Num() - 120);
     bGenerating = false; SaveProfile(); OnGenerationStateChanged.Broadcast(false); OnChatUpdated.Broadcast();
+    SpeakLobbyReply(Entry.Content);
 }
 void UVerityChatSubsystem::RequestGenerativeReply(const FString& Message)
 {
