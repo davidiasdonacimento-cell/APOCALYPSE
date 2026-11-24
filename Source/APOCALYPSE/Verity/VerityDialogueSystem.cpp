@@ -18,10 +18,11 @@ UVerityDialogueSystem::UVerityDialogueSystem()
     SetIsReplicatedByDefault(true);
 }
 
-void UVerityDialogueSystem::Configure(const FString& InLocalAIUrl, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice)
+void UVerityDialogueSystem::Configure(const FString& InLocalAIUrl, const FString& InLocalAIModel, UVerityMemorySystem* InMemory, UVerityPersonalitySystem* InPersonality, UVerityVoiceSystem* InVoice)
 {
     OptionalLocalAIUrl = InLocalAIUrl.TrimStartAndEnd();
     while (OptionalLocalAIUrl.EndsWith(TEXT("/"))) OptionalLocalAIUrl.LeftChopInline(1);
+    LocalAIModel = InLocalAIModel.IsEmpty() ? TEXT("qwen2.5:1.5b") : InLocalAIModel;
     Memory = InMemory;
     Personality = InPersonality;
     Voice = InVoice;
