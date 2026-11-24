@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate required Unreal and world-system files
+      - name: Validate required Unreal and gameplay files
         shell: bash
         run: |
           set -euo pipefail
@@ -25,6 +25,13 @@ jobs:
             Source/APOCALYPSEEditor.Target.cs
             Source/APOCALYPSE/APOCALYPSE.Build.cs
             Source/APOCALYPSE/APOCALYPSE.cpp
+            Source/APOCALYPSE/Characters/ApocalypseCharacter.h
+            Source/APOCALYPSE/Characters/ApocalypseCharacter.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseSurvivalComponent.h
+            Source/APOCALYPSE/Gameplay/ApocalypseSurvivalComponent.cpp
+            Source/APOCALYPSE/Gameplay/ApocalypseInteractable.h
+            Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.h
+            Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.cpp
             Source/APOCALYPSE/World/ApocalypseWorldTypes.h
             Source/APOCALYPSE/World/ApocalypseWorldSubsystem.h
             Source/APOCALYPSE/World/ApocalypseWorldSubsystem.cpp
@@ -35,6 +42,7 @@ jobs:
             Source/APOCALYPSE/Tests/WorldSystemsTests.cpp
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
+            Docs/SURVIVAL_GAMEPLAY.md
           )
           for file in "${required_files[@]}"; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
@@ -45,9 +53,13 @@ jobs:
           project = json.loads(Path("APOCALYPSE.uproject").read_text())
           assert project["EngineAssociation"] == "5.8"
           assert any(module["Name"] == "APOCALYPSE" for module in project["Modules"])
-          subsystem = Path("Source/APOCALYPSE/World/ApocalypseWorldSubsystem.cpp").read_text()
-          assert "SetWorldSeed" in subsystem
-          assert "UpdateWeatherFromRegion" in subsystem
-          assert "BroadcastEnvironment" in subsystem
-          print("Project descriptor and world-system source checks passed.")
+          survival = Path("Source/APOCALYPSE/Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
+          interaction = Path("Source/APOCALYPSE/Gameplay/ApocalypseInteractionComponent.cpp").read_text()
+          character = Path("Source/APOCALYPSE/Characters/ApocalypseCharacter.cpp").read_text()
+          assert "DOREPLIFETIME" in survival and "HasAuthority" in survival
+          assert "ServerTryInteract_Implementation" in interaction
+          assert "Execute_CanInteract" in interaction and "Execute_Interact" in interaction
+          assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
+          assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
+          print("Project descriptor, survival authority/replication, and interaction integration checks passed.")
           PY
