@@ -21,6 +21,7 @@ class APOCALYPSE_API UApocalypseItemCatalog : public UDataAsset
 {
     GENERATED_BODY()
 public:
+    UApocalypseItemCatalog();
     const FApocalypseItemDefinition* FindItem(FName ItemId) const;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory") TArray<FApocalypseItemDefinition> Items;
 };
