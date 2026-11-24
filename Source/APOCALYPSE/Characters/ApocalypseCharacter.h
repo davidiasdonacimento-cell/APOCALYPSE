@@ -27,6 +27,7 @@ protected:
     virtual void BeginPlay() override;
     virtual void OnRep_Controller() override;
     virtual void PossessedBy(AController* NewController) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseSurvivalComponent> SurvivalComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseInteractionComponent> InteractionComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseInventoryComponent> InventoryComponent;
