@@ -28,20 +28,26 @@ void UVerityVoiceSystem::Speak(const FString& Text)
     TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Body);
     FJsonSerializer::Serialize(Payload, Writer);
 
+    TWeakObjectPtr<UVerityVoiceSystem> WeakThis(this);
     TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = FHttpModule::Get().CreateRequest();
     Request->SetURL(BackendBaseUrl + TEXT("/v1/voice"));
     Request->SetVerb(TEXT("POST"));
     Request->SetHeader(TEXT("Content-Type"), TEXT("application/json"));
-    Request->SetTimeout(30.0f);
+    Request->SetTimeout(35.0f);
     Request->SetContentAsString(Body);
-    Request->OnProcessRequestComplete().BindLambda([this, Text](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bConnected)
+    Request->OnProcessRequestComplete().BindLambda([WeakThis, Text](FHttpRequestPtr Req, FHttpResponsePtr Response, bool bConnected)
     {
-        if (!bConnected || !Response.IsValid() || Response->GetResponseCode() != 200 || !bVoiceEnabled) return;
+        UVerityVoiceSystem* Self = WeakThis.Get();
+        if (!Self || !bConnected || !Response.IsValid() || Response->GetResponseCode() != 200 || !Self->bVoiceEnabled) return;
         const TArray<uint8>& Bytes = Response->GetContent();
         if (Bytes.Num() < 44 || Bytes.Num() > 8 * 1024 * 1024) return;
-        AudioCache.Add(Text, Bytes);
-        if (AudioCache.Num() > 24) AudioCache.Remove(AudioCache.CreateConstIterator().Key());
-        PlayWav(Bytes);
+        Self->AudioCache.Add(Text, Bytes);
+        if (Self->AudioCache.Num() > 24)
+        {
+            auto It = Self->AudioCache.CreateIterator();
+            if (It) { It.RemoveCurrent(); }
+        }
+        Self->PlayWav(Bytes);
     });
     Request->ProcessRequest();
 }
@@ -59,15 +65,21 @@ void UVerityVoiceSystem::PlayWav(const TArray<uint8>& Bytes)
     for (int32 Offset = 12; Offset + 8 <= Bytes.Num();)
     {
         const uint8* Header = Bytes.GetData() + Offset;
-        const uint32 ChunkSize = *reinterpret_cast<const uint32*>(Header + 4);
+        uint32 ChunkSize = 0;
+        FMemory::Memcpy(&ChunkSize, Header + 4, sizeof(uint32));
         if (ChunkSize > static_cast<uint32>(Bytes.Num()) || Offset + 8 + ChunkSize > Bytes.Num()) break;
         if (FMemory::Memcmp(Header, "fmt ", 4) == 0 && ChunkSize >= 16)
         {
-            const uint16 Format = *reinterpret_cast<const uint16*>(Header + 8);
-            Channels = *reinterpret_cast<const uint16*>(Header + 10);
-            SampleRate = *reinterpret_cast<const uint32*>(Header + 12);
-            BitsPerSample = *reinterpret_cast<const uint16*>(Header + 22);
+            uint16 Format = 0, ChannelCount = 0, Bits = 0;
+            uint32 Rate = 0;
+            FMemory::Memcpy(&Format, Header + 8, sizeof(uint16));
+            FMemory::Memcpy(&ChannelCount, Header + 10, sizeof(uint16));
+            FMemory::Memcpy(&Rate, Header + 12, sizeof(uint32));
+            FMemory::Memcpy(&Bits, Header + 22, sizeof(uint16));
             if (Format != 1) return;
+            Channels = ChannelCount;
+            SampleRate = static_cast<int32>(Rate);
+            BitsPerSample = Bits;
         }
         else if (FMemory::Memcmp(Header, "data", 4) == 0)
         {
@@ -77,7 +89,7 @@ void UVerityVoiceSystem::PlayWav(const TArray<uint8>& Bytes)
         }
         Offset += 8 + static_cast<int32>(ChunkSize) + (ChunkSize & 1);
     }
-    if (DataOffset == INDEX_NONE || DataSize <= 0 || (BitsPerSample != 16) ||
+    if (DataOffset == INDEX_NONE || DataSize <= 0 || BitsPerSample != 16 ||
         (Channels != 1 && Channels != 2) || SampleRate < 8000 || SampleRate > 96000) return;
 
     StopSpeaking();
@@ -92,7 +104,8 @@ void UVerityVoiceSystem::PlayWav(const TArray<uint8>& Bytes)
     ActiveAudio->bAutoActivate = false;
     ActiveAudio->SetSound(ActiveWave);
     ActiveAudio->SetVolumeMultiplier(VoiceVolume);
-    ActiveAudio->SetupAttachment(GetOwner() ? GetOwner()->GetRootComponent() : nullptr);
+    if (GetOwner() && GetOwner()->GetRootComponent())
+        ActiveAudio->SetupAttachment(GetOwner()->GetRootComponent());
     ActiveAudio->RegisterComponent();
     ActiveAudio->Play();
 }
