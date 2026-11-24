@@ -70,7 +70,14 @@ void UApocalypseWorldSubsystem::SetDayLengthMinutes(float Minutes)
     DayLengthMinutes = FMath::Clamp(Minutes, 5.0f, 240.0f);
 }
 
-void UApocalypseWorldSubsystem::SetWorldSeed(int32 Seed)\n{\n    WorldSeed = Seed;\n    WeatherRandom.Initialize(WorldSeed);\n}\n\nvoid UApocalypseWorldSubsystem::SetWeather(EApocalypseWeather NewWeather)\n{
+void UApocalypseWorldSubsystem::SetWorldSeed(int32 Seed)
+{
+    WorldSeed = Seed;
+    WeatherRandom.Initialize(WorldSeed);
+}
+
+void UApocalypseWorldSubsystem::SetWeather(EApocalypseWeather NewWeather)
+{
     if (CurrentWeather == NewWeather) return;
     const EApocalypseWeather PreviousWeather = CurrentWeather;
     CurrentWeather = NewWeather;
