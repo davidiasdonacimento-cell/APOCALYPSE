@@ -8,6 +8,7 @@ class UApocalypseInteractionComponent;
 class UApocalypseInventoryComponent;
 class UApocalypseEquipmentComponent;
 class UApocalypseInventoryWidget;
+class AController;
 
 UCLASS()
 class APOCALYPSE_API AApocalypseCharacter : public ACharacter
@@ -21,6 +22,8 @@ public:
     UFUNCTION(BlueprintPure, Category="APOCALYPSE|Gameplay") UApocalypseEquipmentComponent* GetEquipmentComponent() const { return EquipmentComponent; }
 protected:
     virtual void BeginPlay() override;
+    virtual void OnRep_Controller() override;
+    virtual void PossessedBy(AController* NewController) override;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseSurvivalComponent> SurvivalComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseInteractionComponent> InteractionComponent;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="APOCALYPSE|Gameplay", meta=(AllowPrivateAccess="true")) TObjectPtr<UApocalypseInventoryComponent> InventoryComponent;
@@ -28,4 +31,5 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="APOCALYPSE|UI") TSubclassOf<UApocalypseInventoryWidget> InventoryWidgetClass;
 private:
     UPROPERTY(Transient) TObjectPtr<UApocalypseInventoryWidget> InventoryWidget;
+    void CreateInventoryWidgetIfNeeded();
 };
