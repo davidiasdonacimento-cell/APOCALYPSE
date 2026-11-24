@@ -31,7 +31,7 @@ void AVerityCompanionCharacter::BeginPlay()
 {
     Super::BeginPlay();
     if (VerityMesh) GetMesh()->SetSkeletalMesh(VerityMesh);
-    DialogueSystem->Configure(AIBackendBaseUrl, MemorySystem, PersonalitySystem, VoiceSystem);
+    DialogueSystem->Configure(LocalAIBaseUrl, MemorySystem, PersonalitySystem, VoiceSystem);
     ApplyCompanionEnabled();
 }
 void AVerityCompanionCharacter::SetPlayerTarget(AActor* Player)
