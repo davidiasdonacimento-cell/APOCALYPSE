@@ -9,7 +9,7 @@ void UApocalypseWorldSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
     TimeOfDayHours = FMath::Fmod(FMath::Max(0.0f, InitialTimeOfDayHours), 24.0f);
-    WeatherRandom.Initialize(GetWorld() ? GetWorld()->GetUniqueID() : 1);
+    WeatherRandom.Initialize(WorldSeed);
     RefreshActiveRegion();
 }
 
@@ -70,8 +70,7 @@ void UApocalypseWorldSubsystem::SetDayLengthMinutes(float Minutes)
     DayLengthMinutes = FMath::Clamp(Minutes, 5.0f, 240.0f);
 }
 
-void UApocalypseWorldSubsystem::SetWeather(EApocalypseWeather NewWeather)
-{
+void UApocalypseWorldSubsystem::SetWorldSeed(int32 Seed)\n{\n    WorldSeed = Seed;\n    WeatherRandom.Initialize(WorldSeed);\n}\n\nvoid UApocalypseWorldSubsystem::SetWeather(EApocalypseWeather NewWeather)\n{
     if (CurrentWeather == NewWeather) return;
     const EApocalypseWeather PreviousWeather = CurrentWeather;
     CurrentWeather = NewWeather;
