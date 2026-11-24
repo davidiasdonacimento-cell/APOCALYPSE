@@ -3,7 +3,6 @@
 #include "GameFramework/Actor.h"
 #include "Gameplay/ApocalypseInteractable.h"
 #include "ApocalypseWorldPickup.generated.h"
-
 UCLASS()
 class APOCALYPSE_API AApocalypseWorldPickup : public AActor, public IApocalypseInteractable
 {
@@ -16,4 +15,6 @@ public:
     UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Pickup", meta=(ClampMin="1")) int32 Quantity = 1;
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pickup") TObjectPtr<USceneComponent> SceneRoot;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pickup") TObjectPtr<class UBoxComponent> InteractionCollision;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pickup") TObjectPtr<class UStaticMeshComponent> VisualMesh;
 };
