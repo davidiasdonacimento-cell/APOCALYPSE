@@ -77,21 +77,16 @@ jobs:
             Source/APOCALYPSE/Verity/VerityCompanionCharacter.cpp
             Source/APOCALYPSE/UI/VeritySettingsWidget.h
             Source/APOCALYPSE/UI/VeritySettingsWidget.cpp
-            Backend/Verity/main.py
-            Backend/Verity/requirements.txt
-            Backend/Verity/Dockerfile
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
             Docs/INVENTORY_LOOT_STORAGE.md
             Docs/INVENTORY_EQUIPMENT_UI.md
             Docs/VERITY_AI_COMPANION.md
-            render.yaml
           )
           for file in "${required_files[@]}"; do
             test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
           done
-          python3 -m compileall -q Backend/Verity/main.py
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -122,16 +117,21 @@ jobs:
           assert "VerityHostileTarget" in companion_ai and "OverlapMultiByObjectType" in companion_ai
           assert "Execute_ReceiveVerityDamage" in combat and "HasAuthority" in combat
           assert "MoveToActor" in navigation
-          assert "/v1/dialogue" in dialogue and "FRandRange" in dialogue
-          assert "/v1/voice" in voice and "QueueAudio" in voice
+          assert "FRandRange" in dialogue and "BuildOfflineLine" in dialogue
+          assert "/v1/chat/completions" in dialogue and "OptionalLocalAIUrl.IsEmpty()" in dialogue
+          assert "FindJavaClass" in voice and "PLATFORM_ANDROID" in voice
+          java_tts = (root / "Verity/Java/VerityTTS.java").read_text()
+          upl = (root / "Verity/Verity_UPL.xml").read_text()
+          assert "TextToSpeech" in java_tts and 'new Locale("pt", "BR")' in java_tts
+          assert "gameActivityOnCreateAdditions" in upl and "addJavaSource" in upl
+          assert "LocalAIBaseUrl" in companion and "AIBackendBaseUrl" not in companion
           assert "MaxMemoryEntries" in memory and "português brasileiro" in personality
           assert "BlueprintNativeEvent" in hostile
           assert "SetAutomaticConversationEnabled" in widget and "SetVoiceVolume" in widget
           assert "APOCALYPSE.Verity.SessionMemory" in verity_test
           assert "APOCALYPSE.Verity.Personality" in verity_test
-          backend = Path("Backend/Verity/main.py").read_text()
-          assert '@app.post("/v1/dialogue")' in backend and '@app.post("/v1/voice")' in backend
-          assert "OPENAI_API_KEY" in backend and "response_format" in backend
+          assert not Path("Backend/Verity/main.py").exists()
+          assert not Path("render.yaml").exists()
           survival = (root / "Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
           interaction = (root / "Gameplay/ApocalypseInteractionComponent.cpp").read_text()
           catalog = (root / "Gameplay/ApocalypseItemCatalog.cpp").read_text()
@@ -149,5 +149,5 @@ jobs:
           assert "AddItem(ItemId, Quantity)" in pickup and "DOREPLIFETIME" in pickup
           assert "AddItem(ResourceItemId, Requested)" in resource and "DOREPLIFETIME" in resource
           assert "NotifyStorageOpened(Inventory)" in storage
-          print("Project metadata, survival, inventory, Verity companion, backend contract and integration checks passed.")
+          print("Project metadata, gameplay, offline Verity, optional local LLM, Android TTS and integration checks passed.")
           PY
