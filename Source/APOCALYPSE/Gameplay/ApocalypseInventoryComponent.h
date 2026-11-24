@@ -3,6 +3,7 @@
 #include "Components/ActorComponent.h"
 #include "Gameplay/ApocalypseItemCatalog.h"
 #include "ApocalypseInventoryComponent.generated.h"
+class UApocalypseInventoryComponent;
 USTRUCT(BlueprintType)
 struct FApocalypseInventoryStack
 {
