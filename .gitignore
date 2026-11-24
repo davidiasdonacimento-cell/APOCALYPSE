@@ -1,0 +1,17 @@
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+.vs/
+.vscode/
+*.sln
+*.suo
+*.user
+Build/
+Artifacts/
+*.apk
+*.aab
+*.obb
+*.keystore
+*.jks
+.env
