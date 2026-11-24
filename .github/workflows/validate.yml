@@ -73,6 +73,8 @@ jobs:
             Source/APOCALYPSE/Verity/VerityPersonalitySystem.cpp
             Source/APOCALYPSE/Verity/VerityVoiceSystem.h
             Source/APOCALYPSE/Verity/VerityVoiceSystem.cpp
+            Source/APOCALYPSE/Verity/Verity_UPL.xml
+            Source/APOCALYPSE/Verity/Java/VerityTTS.java
             Source/APOCALYPSE/Verity/VerityCompanionCharacter.h
             Source/APOCALYPSE/Verity/VerityCompanionCharacter.cpp
             Source/APOCALYPSE/UI/VeritySettingsWidget.h
@@ -109,6 +111,7 @@ jobs:
           widget = (root / "UI/VeritySettingsWidget.cpp").read_text()
           verity_test = (root / "Tests/VeritySystemsTests.cpp").read_text()
           assert all(module in build for module in ('"AIModule"', '"NavigationSystem"', '"HTTP"', '"Json"'))
+          assert "AndroidPlugin" in build and "Verity_UPL.xml" in build
           assert "SpawnVerityCompanion" in character and "DOREPLIFETIME" in character
           assert "CreateDefaultSubobject<UVerityCompanionAI>" in companion
           assert "CreateDefaultSubobject<UVerityCombatSystem>" in companion
