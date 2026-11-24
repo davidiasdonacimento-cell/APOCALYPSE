@@ -12,13 +12,13 @@ int32 UApocalypseInventoryComponent::GetItemQuantity(FName ItemId) const
 int32 UApocalypseInventoryComponent::AddItem(FName ItemId, int32 Quantity)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority() || !ItemCatalog || ItemId.IsNone() || Quantity <= 0) return 0;
-    FApocalypseItemDefinition Definition;
-    if (!ItemCatalog->FindItem(ItemId, Definition) || Definition.MaxStack <= 0) return 0;
+    const FApocalypseItemDefinition* Definition = ItemCatalog->FindItem(ItemId);
+    if (!Definition || Definition->MaxStack <= 0) return 0;
     int32 Remaining = Quantity;
     for (FApocalypseInventoryStack& Stack : Items)
     {
-        if (Stack.ItemId != ItemId || Stack.Quantity >= Definition.MaxStack) continue;
-        const int32 Added = FMath::Min(Remaining, Definition.MaxStack - Stack.Quantity);
+        if (Stack.ItemId != ItemId || Stack.Quantity >= Definition->MaxStack) continue;
+        const int32 Added = FMath::Min(Remaining, Definition->MaxStack - Stack.Quantity);
         Stack.Quantity += Added; Remaining -= Added;
         if (Remaining == 0) break;
     }
@@ -26,7 +26,7 @@ int32 UApocalypseInventoryComponent::AddItem(FName ItemId, int32 Quantity)
     {
         FApocalypseInventoryStack& NewStack = Items.AddDefaulted_GetRef();
         NewStack.ItemId = ItemId;
-        NewStack.Quantity = FMath::Min(Remaining, Definition.MaxStack);
+        NewStack.Quantity = FMath::Min(Remaining, Definition->MaxStack);
         Remaining -= NewStack.Quantity;
     }
     const int32 Accepted = Quantity - Remaining;
@@ -51,15 +51,15 @@ bool UApocalypseInventoryComponent::RemoveItem(FName ItemId, int32 Quantity)
 bool UApocalypseInventoryComponent::ConsumeItem(FName ItemId)
 {
     if (!GetOwner() || !GetOwner()->HasAuthority() || !ItemCatalog || GetItemQuantity(ItemId) < 1) return false;
-    FApocalypseItemDefinition Definition;
-    if (!ItemCatalog->FindItem(ItemId, Definition)) return false;
+    const FApocalypseItemDefinition* Definition = ItemCatalog->FindItem(ItemId);
+    if (!Definition) return false;
     UApocalypseSurvivalComponent* Survival = GetOwner()->FindComponentByClass<UApocalypseSurvivalComponent>();
-    const bool bHasEffect = Definition.HungerRestoration > 0.0f || Definition.ThirstRestoration > 0.0f || Definition.HealthRestoration > 0.0f;
+    const bool bHasEffect = Definition->HungerRestoration > 0.0f || Definition->ThirstRestoration > 0.0f || Definition->HealthRestoration > 0.0f;
     if (!Survival || !Survival->IsAlive() || !bHasEffect) return false;
     if (!RemoveItem(ItemId, 1)) return false;
-    if (Definition.HungerRestoration > 0.0f) Survival->ConsumeFood(Definition.HungerRestoration);
-    if (Definition.ThirstRestoration > 0.0f) Survival->ConsumeWater(Definition.ThirstRestoration);
-    if (Definition.HealthRestoration > 0.0f) Survival->RestoreHealth(Definition.HealthRestoration);
+    if (Definition->HungerRestoration > 0.0f) Survival->ConsumeFood(Definition->HungerRestoration);
+    if (Definition->ThirstRestoration > 0.0f) Survival->ConsumeWater(Definition->ThirstRestoration);
+    if (Definition->HealthRestoration > 0.0f) Survival->RestoreHealth(Definition->HealthRestoration);
     return true;
 }
 void UApocalypseInventoryComponent::RequestTransferTo(UApocalypseInventoryComponent* Target, FName ItemId, int32 Quantity) { ServerTransferTo(Target, ItemId, Quantity); }
