@@ -16,6 +16,7 @@ void AApocalypseGameMode::BeginPlay()
     {
         if (UApocalypseWorldSubsystem* WorldSubsystem = World->GetSubsystem<UApocalypseWorldSubsystem>())
         {
+            WorldSubsystem->SetWorldSeed(WorldSeed);
             WorldSubsystem->SetRegionRegistry(WorldRegionRegistryAsset);
         }
     }
