@@ -1,0 +1,49 @@
+name: Package Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apocalypse-android-build
+  cancel-in-progress: false
+
+jobs:
+  android:
+    if: github.repository == 'davidiasdonacimento-cell/APOCALYPSE'
+    runs-on: [self-hosted, Windows, X64, UE58, Android]
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Unreal and Android toolchain
+        shell: pwsh
+        run: |
+          if (-not $env:UE_ROOT) { throw "UE_ROOT is not configured." }
+          $editor = Join-Path $env:UE_ROOT "Engine\Binaries\Win64\UnrealEditor-Cmd.exe"
+          $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
+          if (-not (Test-Path $editor)) { throw "Unreal Editor not found under UE_ROOT." }
+          if (-not (Test-Path $uat)) { throw "RunUAT.bat not found under UE_ROOT." }
+          if (-not $env:ANDROID_HOME -and -not $env:ANDROID_SDK_ROOT) {
+            throw "ANDROID_HOME or ANDROID_SDK_ROOT must be configured."
+          }
+      - name: Package APK
+        shell: pwsh
+        run: |
+          $uat = Join-Path $env:UE_ROOT "Engine\Build\BatchFiles\RunUAT.bat"
+          $project = Join-Path $PWD "APOCALYPSE.uproject"
+          $archive = Join-Path $PWD "Artifacts\Android"
+          New-Item -ItemType Directory -Force -Path $archive | Out-Null
+          $arguments = @("BuildCookRun", "-project=$project", "-noP4", "-utf8output", "-cook", "-build", "-stage", "-pak", "-archive", "-archivedirectory=$archive", "-platform=Android", "-clientconfig=Development", "-cookflavor=ASTC")
+          & $uat @arguments
+          if ($LASTEXITCODE -ne 0) { throw "BuildCookRun failed: $LASTEXITCODE" }
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: APOCALYPSE-Android-Development
+          path: Artifacts/Android/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
