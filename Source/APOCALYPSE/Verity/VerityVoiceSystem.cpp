@@ -3,7 +3,6 @@
 #if PLATFORM_ANDROID
 #include "Android/AndroidApplication.h"
 #include "Android/AndroidJNI.h"
-#include "Android/AndroidJava.h"
 #endif
 
 UVerityVoiceSystem::UVerityVoiceSystem()
