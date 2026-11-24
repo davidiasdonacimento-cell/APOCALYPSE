@@ -25,6 +25,7 @@ public:
 protected:
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 private:
     FString BackendBaseUrl;
     TWeakObjectPtr<UVerityMemorySystem> Memory;
@@ -33,12 +34,13 @@ private:
     FTimerHandle ConversationTimer;
     FString LastLine;
     bool bAutomaticConversation = true;
-    bool bCombatActive = false;
+    UPROPERTY(ReplicatedUsing=OnRep_CombatActive) bool bCombatActive = false;
     bool bRequestPending = false;
+    UFUNCTION() void OnRep_CombatActive();
     float NextConversationDelay() const;
     void ScheduleNextConversation(float Delay);
     void StartAutomaticConversation();
     void RequestDialogue(const FString& Trigger, const FString& PlayerMessage);
     void DeliverLine(const FString& Line, bool bSpeak);
-    FString BuildOfflineLine() const;
+    FString BuildOfflineLine();
 };
