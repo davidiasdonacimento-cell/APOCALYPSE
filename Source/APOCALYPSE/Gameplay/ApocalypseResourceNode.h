@@ -11,8 +11,9 @@ public:
     AApocalypseResourceNode();
     virtual bool CanInteract_Implementation(AActor* InteractingActor) const override;
     virtual void Interact_Implementation(AActor* InteractingActor) override;
-    UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Resource") FName ResourceItemId = NAME_None;
-    UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Resource", meta=(ClampMin="1")) int32 RemainingQuantity = 10;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    UPROPERTY(EditInstanceOnly, Replicated, BlueprintReadOnly, Category="Resource") FName ResourceItemId = NAME_None;
+    UPROPERTY(EditInstanceOnly, Replicated, BlueprintReadOnly, Category="Resource", meta=(ClampMin="1")) int32 RemainingQuantity = 10;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Resource", meta=(ClampMin="1")) int32 YieldPerHarvest = 1;
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Resource") TObjectPtr<USceneComponent> SceneRoot;
