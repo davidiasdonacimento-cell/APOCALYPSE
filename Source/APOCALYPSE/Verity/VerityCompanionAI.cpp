@@ -6,7 +6,6 @@
 #include "Verity/VerityDialogueSystem.h"
 #include "Verity/VerityPersonalitySystem.h"
 #include "Engine/World.h"
-
 UVerityCompanionAI::UVerityCompanionAI()
 {
     PrimaryComponentTick.bCanEverTick = true;
@@ -61,6 +60,14 @@ void UVerityCompanionAI::TickComponent(float DeltaTime, ELevelTick TickType, FAc
         if (UVerityPersonalitySystem* Personality = Self->FindComponentByClass<UVerityPersonalitySystem>())
             Personality->SetMood(BestTarget ? EVerityMood::Alert : EVerityMood::Relieved);
         if (UVerityDialogueSystem* Dialogue = Self->FindComponentByClass<UVerityDialogueSystem>())
+        {
             Dialogue->SetCombatActive(BestTarget != nullptr);
+            if (BestTarget)
+            {
+                const float DistanceMeters = FMath::Sqrt(BestDistanceSquared) / 100.0f;
+                Dialogue->NotifyGameEvent(TEXT("threat_detected"), FString::Printf(TEXT("Uma ameaça válida foi detectada a aproximadamente %.1f metros da VERITY."), DistanceMeters));
+            }
+            else Dialogue->NotifyGameEvent(TEXT("threat_cleared"), TEXT("A ameaça que estava sendo acompanhada não está mais ativa ou próxima."));
+        }
     }
 }

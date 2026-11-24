@@ -2,7 +2,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "ApocalypseCharacter.generated.h"
-
 class UApocalypseSurvivalComponent;
 class UApocalypseInteractionComponent;
 class UApocalypseInventoryComponent;
@@ -11,7 +10,6 @@ class UApocalypseInventoryWidget;
 class UVerityCompanionCharacter;
 class UVeritySettingsWidget;
 class AController;
-
 UCLASS()
 class APOCALYPSE_API AApocalypseCharacter : public ACharacter
 {
@@ -38,8 +36,17 @@ protected:
 private:
     UPROPERTY(Transient) TObjectPtr<UApocalypseInventoryWidget> InventoryWidget;
     UPROPERTY(Transient) TObjectPtr<UVeritySettingsWidget> VeritySettingsWidget;
+    bool bVerityEventDelegatesBound = false;
+    bool bVeritySurvivalBaselineInitialized = false;
+    int32 LastHealthBand = 3;
+    int32 LastHungerBand = 3;
+    int32 LastThirstBand = 3;
     UFUNCTION() void OnRep_VerityCompanion();
+    UFUNCTION() void HandleSurvivalChanged();
+    UFUNCTION() void HandleInventoryChanged();
+    UFUNCTION() void HandleEquipmentChanged();
     void SpawnVerityCompanion();
+    void BindVerityGameEvents();
     void CreateInventoryWidgetIfNeeded();
     void CreateVeritySettingsWidgetIfNeeded();
 };
