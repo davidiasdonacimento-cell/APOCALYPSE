@@ -19,7 +19,6 @@ AApocalypseCharacter::AApocalypseCharacter()
     InventoryComponent = CreateDefaultSubobject<UApocalypseInventoryComponent>(TEXT("InventoryComponent"));
     EquipmentComponent = CreateDefaultSubobject<UApocalypseEquipmentComponent>(TEXT("EquipmentComponent"));
 }
-
 void AApocalypseCharacter::BeginPlay()
 {
     Super::BeginPlay();
@@ -27,21 +26,18 @@ void AApocalypseCharacter::BeginPlay()
     CreateInventoryWidgetIfNeeded();
     CreateVeritySettingsWidgetIfNeeded();
 }
-
 void AApocalypseCharacter::OnRep_Controller()
 {
     Super::OnRep_Controller();
     CreateInventoryWidgetIfNeeded();
     CreateVeritySettingsWidgetIfNeeded();
 }
-
 void AApocalypseCharacter::PossessedBy(AController* NewController)
 {
     Super::PossessedBy(NewController);
     CreateInventoryWidgetIfNeeded();
     CreateVeritySettingsWidgetIfNeeded();
 }
-
 void AApocalypseCharacter::SpawnVerityCompanion()
 {
     if (!HasAuthority() || !bEnableVerityCompanion || VerityCompanion || !GetWorld()) return;
@@ -57,12 +53,7 @@ void AApocalypseCharacter::SpawnVerityCompanion()
     ForceNetUpdate();
     OnRep_VerityCompanion();
 }
-
-void AApocalypseCharacter::OnRep_VerityCompanion()
-{
-    CreateVeritySettingsWidgetIfNeeded();
-}
-
+void AApocalypseCharacter::OnRep_VerityCompanion() { CreateVeritySettingsWidgetIfNeeded(); }
 void AApocalypseCharacter::CreateInventoryWidgetIfNeeded()
 {
     if (InventoryWidget || !IsLocallyControlled()) return;
@@ -75,7 +66,6 @@ void AApocalypseCharacter::CreateInventoryWidgetIfNeeded()
     InventoryWidget->SetInventoryContext(InventoryComponent, EquipmentComponent);
     InventoryWidget->AddToViewport(20);
 }
-
 void AApocalypseCharacter::CreateVeritySettingsWidgetIfNeeded()
 {
     if (VeritySettingsWidget || !IsLocallyControlled() || !IsValid(VerityCompanion)) return;
@@ -86,7 +76,6 @@ void AApocalypseCharacter::CreateVeritySettingsWidgetIfNeeded()
     VeritySettingsWidget->AddToViewport(30);
     VeritySettingsWidget->SetCompanion(VerityCompanion);
 }
-
 void AApocalypseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
