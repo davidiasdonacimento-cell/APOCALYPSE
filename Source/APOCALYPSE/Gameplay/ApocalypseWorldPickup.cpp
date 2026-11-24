@@ -2,6 +2,7 @@
 #include "Gameplay/ApocalypseInventoryComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 AApocalypseWorldPickup::AApocalypseWorldPickup()
 {
     bReplicates = true;
@@ -30,4 +31,10 @@ void AApocalypseWorldPickup::Interact_Implementation(AActor* InteractingActor)
     if (!Inventory) return;
     Quantity -= Inventory->AddItem(ItemId, Quantity);
     if (Quantity <= 0) Destroy();
+}
+void AApocalypseWorldPickup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeReplicatedProps);
+    DOREPLIFETIME(AApocalypseWorldPickup, ItemId);
+    DOREPLIFETIME(AApocalypseWorldPickup, Quantity);
 }
