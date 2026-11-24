@@ -14,15 +14,25 @@ UVerityCompanionAI::UVerityCompanionAI()
 }
 void UVerityCompanionAI::BeginPlay() { Super::BeginPlay(); }
 void UVerityCompanionAI::SetPlayerTarget(AActor* Player) { PlayerTarget = Player; }
+void UVerityCompanionAI::SetAIEnabled(bool bEnabled)
+{
+    bAIEnabled = bEnabled;
+    if (!bEnabled && GetOwner())
+    {
+        CurrentThreat.Reset();
+        if (UVerityCombatSystem* Combat = GetOwner()->FindComponentByClass<UVerityCombatSystem>()) Combat->SetTarget(nullptr);
+        if (UVerityNavigationSystem* Navigation = GetOwner()->FindComponentByClass<UVerityNavigationSystem>()) Navigation->SetCombatTarget(nullptr);
+        if (UVerityDialogueSystem* Dialogue = GetOwner()->FindComponentByClass<UVerityDialogueSystem>()) Dialogue->SetCombatActive(false);
+    }
+}
 void UVerityCompanionAI::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
     AActor* Self = GetOwner();
-    if (!Self || !Self->HasAuthority()) return;
+    if (!bAIEnabled || !Self || !Self->HasAuthority() || !GetWorld()) return;
     ScanCooldown -= DeltaTime;
     if (ScanCooldown > 0.0f) return;
     ScanCooldown = 0.7f;
-
     TArray<FOverlapResult> Overlaps;
     FCollisionObjectQueryParams ObjectTypes;
     ObjectTypes.AddObjectTypesToQuery(ECC_Pawn);
@@ -30,19 +40,17 @@ void UVerityCompanionAI::TickComponent(float DeltaTime, ELevelTick TickType, FAc
     FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(VerityThreatScan), false, Self);
     const FCollisionShape Sphere = FCollisionShape::MakeSphere(FMath::Clamp(AwarenessRadius, 300.0f, 2500.0f));
     GetWorld()->OverlapMultiByObjectType(Overlaps, Self->GetActorLocation(), FQuat::Identity, ObjectTypes, Sphere, QueryParams);
-
     AActor* BestTarget = nullptr;
-    float BestDistance = AwarenessRadius;
+    float BestDistanceSquared = FMath::Square(AwarenessRadius);
     for (const FOverlapResult& Overlap : Overlaps)
     {
         AActor* Candidate = Overlap.GetActor();
         if (!IsValid(Candidate) || Candidate == Self || Candidate == PlayerTarget.Get() ||
             !Candidate->GetClass()->ImplementsInterface(UVerityHostileTarget::StaticClass())) continue;
         if (!IVerityHostileTarget::Execute_IsValidVerityTarget(Candidate, Self)) continue;
-        const float Distance = FVector::DistSquared(Self->GetActorLocation(), Candidate->GetActorLocation());
-        if (Distance < FMath::Square(BestDistance)) { BestDistance = FMath::Sqrt(Distance); BestTarget = Candidate; }
+        const float DistanceSquared = FVector::DistSquared(Self->GetActorLocation(), Candidate->GetActorLocation());
+        if (DistanceSquared < BestDistanceSquared) { BestDistanceSquared = DistanceSquared; BestTarget = Candidate; }
     }
-
     if (CurrentThreat.Get() != BestTarget)
     {
         CurrentThreat = BestTarget;
