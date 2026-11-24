@@ -108,7 +108,7 @@ void UApocalypseInventoryWidget::SetInventoryContext(UApocalypseInventoryCompone
 void UApocalypseInventoryWidget::HandleSelectionChanged(FString Selected, ESelectInfo::Type SelectionType)
 {
     const int32 Separator = Selected.Find(TEXT("|"));
-    SelectedItemId = Separator == INDEX_NONE ? NAME_None : FName(*Selected.Left(Separator));
+    SelectedItemId = Separator == INDEX_NONE ? NAME_None : FName(*Selected.Mid(Separator + 1));
     if (ItemDetailsText && Inventory && !SelectedItemId.IsNone())
     {
         const UApocalypseItemCatalog* Catalog = Inventory->GetCatalog();
