@@ -11,7 +11,7 @@ A VERITY não depende de uma API paga, assinatura, conta de provedor ou servidor
 ## Configurar o modelo local opcional
 1. Instale e execute um servidor de inferência local em um computador seu, na mesma rede Wi-Fi do dispositivo Android.
 2. Habilite a API compatível com OpenAI no servidor local e escolha um modelo pequeno adequado à memória disponível.
-3. Defina `LocalAIBaseUrl` no config/Blueprint da VERITY para o endereço LAN do computador, incluindo a porta, por exemplo `http://192.168.0.20:11434/v1`.
+3. Defina `LocalAIBaseUrl` no config/Blueprint da VERITY para o endereço LAN do computador, incluindo a porta, por exemplo `http://192.168.0.20:11434`.
 4. Defina `LocalAIModel` com o identificador exato do modelo instalado.
 5. Permita conexões HTTP locais no projeto Android se o servidor não usar HTTPS. Não exponha essa porta à internet.
 
