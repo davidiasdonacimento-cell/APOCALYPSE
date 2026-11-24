@@ -50,6 +50,7 @@ jobs:
             Source/APOCALYPSE/World/WorldEnvironmentController.h
             Source/APOCALYPSE/World/WorldPOIRegistry.h
             Source/APOCALYPSE/Tests/WorldSystemsTests.cpp
+            Source/APOCALYPSE/Tests/InventorySystemsTests.cpp
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
@@ -87,6 +88,9 @@ jobs:
           assert "CreateDefaultSubobject<UApocalypseSurvivalComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInteractionComponent>" in character
           assert "CreateDefaultSubobject<UApocalypseInventoryComponent>" in character
+          inventory_test = (root / "Tests/InventorySystemsTests.cpp").read_text()
+          assert "APOCALYPSE.Inventory.DefaultCatalog" in inventory_test
+          assert "canned_food" in inventory_test and "water_bottle" in inventory_test
           assert "Replicated" in pickup_h and "Replicated" in resource_h
           print("Project descriptor, authority, item catalog, inventory replication, loot, storage RPC and character integration checks passed.")
           PY
