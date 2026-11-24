@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, "feature/**", "develop"]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, "feature/**"]
   workflow_dispatch:
 
 permissions:
@@ -15,20 +15,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate project files
+      - name: Validate required Unreal and world-system files
         shell: bash
         run: |
           set -euo pipefail
-          test -f APOCALYPSE.uproject
-          test -f Source/APOCALYPSE.Target.cs
-          test -f Source/APOCALYPSEEditor.Target.cs
-          test -f Source/APOCALYPSE/APOCALYPSE.Build.cs
-          test -f Source/APOCALYPSE/APOCALYPSE.cpp
+          required_files=(
+            APOCALYPSE.uproject
+            Source/APOCALYPSE.Target.cs
+            Source/APOCALYPSEEditor.Target.cs
+            Source/APOCALYPSE/APOCALYPSE.Build.cs
+            Source/APOCALYPSE/APOCALYPSE.cpp
+            Source/APOCALYPSE/World/ApocalypseWorldTypes.h
+            Source/APOCALYPSE/World/ApocalypseWorldSubsystem.h
+            Source/APOCALYPSE/World/ApocalypseWorldSubsystem.cpp
+            Source/APOCALYPSE/World/WorldRegionDefinition.h
+            Source/APOCALYPSE/World/WorldRegionRegistry.h
+            Source/APOCALYPSE/World/WorldEnvironmentController.h
+            Source/APOCALYPSE/World/WorldPOIRegistry.h
+            Source/APOCALYPSE/Tests/WorldSystemsTests.cpp
+            Docs/OPEN_WORLD_PRODUCTION.md
+            Docs/WORLD_CONTENT_PIPELINE.md
+          )
+          for file in "${required_files[@]}"; do
+            test -s "$file" || { echo "Missing or empty required file: $file"; exit 1; }
+          done
           python3 - <<'PY'
           import json
           from pathlib import Path
           project = json.loads(Path("APOCALYPSE.uproject").read_text())
           assert project["EngineAssociation"] == "5.8"
           assert any(module["Name"] == "APOCALYPSE" for module in project["Modules"])
-          print("Project descriptor is valid.")
+          subsystem = Path("Source/APOCALYPSE/World/ApocalypseWorldSubsystem.cpp").read_text()
+          assert "SetWorldSeed" in subsystem
+          assert "UpdateWeatherFromRegion" in subsystem
+          assert "BroadcastEnvironment" in subsystem
+          print("Project descriptor and world-system source checks passed.")
           PY
