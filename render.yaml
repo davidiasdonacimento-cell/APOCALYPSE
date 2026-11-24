@@ -3,7 +3,7 @@ services:
     name: apocalypse-verity-ai
     runtime: docker
     rootDir: Backend/Verity
-    plan: starter
+    plan: free
     healthCheckPath: /health
     envVars:
       - key: OPENAI_API_KEY
