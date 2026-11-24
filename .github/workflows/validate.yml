@@ -161,6 +161,8 @@ jobs:
           assert "bAwaitingClearConfirmation" in lobby_h
           assert "SetPersonalContext" in chat and "PersonalContext" in profile
           assert "PersistentMemories" in profile and "SaveGameToSlot" in chat
+          assert "SpeakLobbyReply" in chat and "SetLobbyVoiceEnabled" in chat
+          assert "FindJavaClass" in chat and "VerityTTS" in chat
           assert "/v1/chat/completions" in chat and "LocalAIBaseUrl.IsEmpty" in chat
           assert not Path("Backend/Verity/main.py").exists()
           assert not Path("render.yaml").exists()

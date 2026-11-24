@@ -15,7 +15,7 @@
 - O mapa padrão ainda é /Engine/Maps/Entry. Não existe mapa de lobby 3D próprio nem mapa de campanha incluído nesta branch. O lobby atual é UI funcional; o cenário 3D, personagem visual, animações e cosméticos exigem assets e mapas reais.
 - CONTINUAR depende de um sinal de progresso. O sistema de campanha ainda não grava estado de progresso real.
 - A conversa generativa depende de um servidor de modelo local configurado; não há API em nuvem gratuita e ilimitada.
-- A tela de lobby ainda não integra microfone/STT nem sincronização labial.
+- A tela de lobby já reproduz respostas pela integração Android TextToSpeech existente, com opção para ativar/desativar a voz. Microfone/STT e sincronização labial ainda não estão integrados.
 - A voz TTS existente está no sistema de companheira da partida; a voz da conversa de lobby ainda precisa de ligação direta ao serviço Android.
 - CONFIGURAÇÕES e PERSONALIZAR informam honestamente que os sistemas de opções/cosméticos ainda não existem; não simulam que estejam implementados.
 - Não foi feita compilação Unreal, execução no Editor ou pacote Android nesta etapa.
