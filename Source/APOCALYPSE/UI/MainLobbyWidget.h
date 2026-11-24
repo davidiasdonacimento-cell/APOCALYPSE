@@ -27,6 +27,7 @@ private:
     UPROPERTY(Transient) TObjectPtr<UButton> ClearChatButton;
     UPROPERTY(Transient) TObjectPtr<UButton> StartButton;
     UPROPERTY(Transient) TObjectPtr<UButton> ContinueButton;
+    bool bAwaitingClearConfirmation = false;
     UFUNCTION() void OnSendClicked();
     UFUNCTION() void OnEditLastClicked();
     UFUNCTION() void OnSaveContextClicked();

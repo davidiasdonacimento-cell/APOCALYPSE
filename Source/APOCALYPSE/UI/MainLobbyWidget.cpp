@@ -108,6 +108,13 @@ void UMainLobbyWidget::OnSaveContextClicked()
 void UMainLobbyWidget::OnClearChatClicked()
 {
     if (!Chat) return;
+    if (!bAwaitingClearConfirmation)
+    {
+        bAwaitingClearConfirmation = true;
+        SetStatus(TEXT("Confirmação: toque novamente em LIMPAR CONVERSA para apagar o histórico salvo."));
+        return;
+    }
+    bAwaitingClearConfirmation = false;
     Chat->ClearHistoryAfterConfirmation(true);
     SetStatus(TEXT("Histórico desta conversa foi limpo."));
 }

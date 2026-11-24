@@ -79,6 +79,14 @@ jobs:
             Source/APOCALYPSE/Verity/VerityCompanionCharacter.cpp
             Source/APOCALYPSE/UI/VeritySettingsWidget.h
             Source/APOCALYPSE/UI/VeritySettingsWidget.cpp
+            Source/APOCALYPSE/UI/MainLobbyWidget.h
+            Source/APOCALYPSE/UI/MainLobbyWidget.cpp
+            Source/APOCALYPSE/Verity/VerityChatSubsystem.h
+            Source/APOCALYPSE/Verity/VerityChatSubsystem.cpp
+            Source/APOCALYPSE/Verity/VerityProfileSaveGame.h
+            Source/APOCALYPSE/Game/ApocalypseGameMode.h
+            Source/APOCALYPSE/Game/ApocalypseGameMode.cpp
+            Docs/APOCALYPSE_LOBBY_VERITY_CHAT.md
             Docs/OPEN_WORLD_PRODUCTION.md
             Docs/WORLD_CONTENT_PIPELINE.md
             Docs/SURVIVAL_GAMEPLAY.md
@@ -141,6 +149,19 @@ jobs:
           assert "SetAutomaticConversationEnabled" in widget and "SetVoiceVolume" in widget
           assert "APOCALYPSE.Verity.SessionMemory" in verity_test
           assert "APOCALYPSE.Verity.Personality" in verity_test
+          lobby = (root / "UI/MainLobbyWidget.cpp").read_text()
+          lobby_h = (root / "UI/MainLobbyWidget.h").read_text()
+          chat = (root / "Verity/VerityChatSubsystem.cpp").read_text()
+          chat_h = (root / "Verity/VerityChatSubsystem.h").read_text()
+          profile = (root / "Verity/VerityProfileSaveGame.h").read_text()
+          game_mode = (root / "Game/ApocalypseGameMode.cpp").read_text()
+          assert "HandleStartingNewPlayer_Implementation" in game_mode and "RestartPlayer(PlayerController)" in game_mode
+          assert "StartGameForPlayer" in game_mode and "INICIAR JOGO" in lobby
+          assert "EditLastPlayerMessage" in lobby and "ClearHistoryAfterConfirmation" in lobby
+          assert "bAwaitingClearConfirmation" in lobby_h
+          assert "SetPersonalContext" in chat and "PersonalContext" in profile
+          assert "PersistentMemories" in profile and "SaveGameToSlot" in chat
+          assert "/v1/chat/completions" in chat and "LocalAIBaseUrl.IsEmpty" in chat
           assert not Path("Backend/Verity/main.py").exists()
           assert not Path("render.yaml").exists()
           survival = (root / "Gameplay/ApocalypseSurvivalComponent.cpp").read_text()
