@@ -19,7 +19,24 @@ AApocalypseCharacter::AApocalypseCharacter()
 void AApocalypseCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    if (!IsLocallyControlled()) return;
+    CreateInventoryWidgetIfNeeded();
+}
+
+void AApocalypseCharacter::OnRep_Controller()
+{
+    Super::OnRep_Controller();
+    CreateInventoryWidgetIfNeeded();
+}
+
+void AApocalypseCharacter::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+    CreateInventoryWidgetIfNeeded();
+}
+
+void AApocalypseCharacter::CreateInventoryWidgetIfNeeded()
+{
+    if (InventoryWidget || !IsLocallyControlled()) return;
     APlayerController* PlayerController = Cast<APlayerController>(GetController());
     if (!PlayerController) return;
 
