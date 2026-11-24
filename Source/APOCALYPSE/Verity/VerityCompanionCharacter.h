@@ -10,8 +10,9 @@ class UVerityMemorySystem;
 class UVerityPersonalitySystem;
 class UVerityDialogueSystem;
 class UVerityVoiceSystem;
+class USkeletalMesh;
 
-UCLASS()
+UCLASS(config=Game)
 class APOCALYPSE_API AVerityCompanionCharacter : public ACharacter
 {
     GENERATED_BODY()
@@ -25,7 +26,7 @@ public:
     UFUNCTION(BlueprintPure, Category="VERITY") bool IsCompanionEnabled() const { return bCompanionEnabled; }
 protected:
     virtual void BeginPlay() override;
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI") FString AIBackendBaseUrl;
+    UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI") FString AIBackendBaseUrl;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCompanionAI> CompanionAI;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCombatSystem> CombatSystem;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityNavigationSystem> NavigationSystem;
@@ -37,4 +38,6 @@ protected:
 private:
     UPROPERTY(ReplicatedUsing=OnRep_CompanionEnabled) bool bCompanionEnabled = true;
     UFUNCTION() void OnRep_CompanionEnabled();
+    UFUNCTION(Server, Reliable) void ServerSetCompanionEnabled(bool bEnabled);
+    void ApplyCompanionEnabled();
 };
