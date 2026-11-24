@@ -2,10 +2,8 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "ApocalypseItemCatalog.generated.h"
-
 UENUM(BlueprintType)
 enum class EApocalypseItemCategory : uint8 { Resource, Food, Water, Medical, Material, Quest };
-
 USTRUCT(BlueprintType)
 struct FApocalypseItemDefinition
 {
@@ -18,14 +16,11 @@ struct FApocalypseItemDefinition
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin="0.0")) float ThirstRestoration = 0.0f;
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(ClampMin="0.0")) float HealthRestoration = 0.0f;
 };
-
 UCLASS(BlueprintType)
 class APOCALYPSE_API UApocalypseItemCatalog : public UDataAsset
 {
     GENERATED_BODY()
 public:
-    UFUNCTION(BlueprintPure, Category="Inventory")
-    bool FindItem(FName ItemId, FApocalypseItemDefinition& OutDefinition) const;
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory")
-    TArray<FApocalypseItemDefinition> Items;
+    const FApocalypseItemDefinition* FindItem(FName ItemId) const;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Inventory") TArray<FApocalypseItemDefinition> Items;
 };
