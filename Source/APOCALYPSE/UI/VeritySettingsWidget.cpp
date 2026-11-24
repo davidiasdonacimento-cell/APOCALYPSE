@@ -2,7 +2,6 @@
 #include "Verity/VerityCompanionCharacter.h"
 #include "Verity/VerityDialogueSystem.h"
 #include "Verity/VerityVoiceSystem.h"
-#include "Verity/VerityNavigationSystem.h"
 #include "Components/CheckBox.h"
 #include "Components/Slider.h"
 #include "Components/EditableTextBox.h"
@@ -22,15 +21,25 @@ void UVeritySettingsWidget::NativeConstruct()
     Title->SetText(FText::FromString(TEXT("VERITY • COMPANHEIRA IA")));
     Root->AddChild(Title);
 
-    CompanionToggle = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
-    Root->AddChild(CompanionToggle);
-    AutoTalkToggle = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
-    Root->AddChild(AutoTalkToggle);
-    VoiceToggle = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
-    Root->AddChild(VoiceToggle);
+    auto AddToggle = [this, Root](const TCHAR* Label, UCheckBox*& OutCheckBox)
+    {
+        UTextBlock* LabelText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+        LabelText->SetText(FText::FromString(Label));
+        Root->AddChild(LabelText);
+        OutCheckBox = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
+        Root->AddChild(OutCheckBox);
+    };
+    AddToggle(TEXT("Companheira ativada"), CompanionToggle);
+    AddToggle(TEXT("Conversas espontâneas"), AutoTalkToggle);
+    AddToggle(TEXT("Voz em português"), VoiceToggle);
+
+    UTextBlock* VolumeLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
+    VolumeLabel->SetText(FText::FromString(TEXT("Volume da voz")));
+    Root->AddChild(VolumeLabel);
     VolumeSlider = WidgetTree->ConstructWidget<USlider>(USlider::StaticClass());
     VolumeSlider->SetValue(0.85f);
     Root->AddChild(VolumeSlider);
+
     MessageInput = WidgetTree->ConstructWidget<UEditableTextBox>(UEditableTextBox::StaticClass());
     MessageInput->SetHintText(FText::FromString(TEXT("Escreva para conversar com a VERITY...")));
     Root->AddChild(MessageInput);
@@ -50,14 +59,21 @@ void UVeritySettingsWidget::NativeConstruct()
     UpdateStatus(TEXT("Aguardando VERITY..."));
 }
 
+void UVeritySettingsWidget::NativeDestruct()
+{
+    if (Companion && Companion->GetDialogueSystem())
+        Companion->GetDialogueSystem()->OnDialogueLine.RemoveDynamic(this, &UVeritySettingsWidget::OnDialogueLine);
+    Super::NativeDestruct();
+}
+
 void UVeritySettingsWidget::SetCompanion(AVerityCompanionCharacter* InCompanion)
 {
     Companion = InCompanion;
-    if (!Companion) return;
+    if (!Companion || !CompanionToggle || !AutoTalkToggle || !VoiceToggle) return;
     CompanionToggle->SetIsChecked(Companion->IsCompanionEnabled());
     AutoTalkToggle->SetIsChecked(Companion->GetDialogueSystem()->IsAutomaticConversationEnabled());
     VoiceToggle->SetIsChecked(Companion->GetVoiceSystem()->IsVoiceEnabled());
-    Companion->GetDialogueSystem()->OnDialogueLine.AddDynamic(this, &UVeritySettingsWidget::OnDialogueLine);
+    Companion->GetDialogueSystem()->OnDialogueLine.AddUniqueDynamic(this, &UVeritySettingsWidget::OnDialogueLine);
     UpdateStatus(TEXT("VERITY conectada."));
 }
 
