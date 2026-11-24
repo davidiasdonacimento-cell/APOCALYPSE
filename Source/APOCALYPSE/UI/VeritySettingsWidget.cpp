@@ -21,17 +21,18 @@ void UVeritySettingsWidget::NativeConstruct()
     Title->SetText(FText::FromString(TEXT("VERITY • COMPANHEIRA IA")));
     Root->AddChild(Title);
 
-    auto AddToggle = [this, Root](const TCHAR* Label, UCheckBox*& OutCheckBox)
+    auto AddToggle = [this, Root](const TCHAR* Label) -> UCheckBox*
     {
         UTextBlock* LabelText = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
         LabelText->SetText(FText::FromString(Label));
         Root->AddChild(LabelText);
-        OutCheckBox = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
-        Root->AddChild(OutCheckBox);
+        UCheckBox* CheckBox = WidgetTree->ConstructWidget<UCheckBox>(UCheckBox::StaticClass());
+        Root->AddChild(CheckBox);
+        return CheckBox;
     };
-    AddToggle(TEXT("Companheira ativada"), CompanionToggle);
-    AddToggle(TEXT("Conversas espontâneas"), AutoTalkToggle);
-    AddToggle(TEXT("Voz em português"), VoiceToggle);
+    CompanionToggle = AddToggle(TEXT("Companheira ativada"));
+    AutoTalkToggle = AddToggle(TEXT("Conversas espontâneas"));
+    VoiceToggle = AddToggle(TEXT("Voz em português"));
 
     UTextBlock* VolumeLabel = WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass());
     VolumeLabel->SetText(FText::FromString(TEXT("Volume da voz")));
