@@ -26,6 +26,7 @@ public:
     UFUNCTION(BlueprintPure, Category="VERITY") bool IsCompanionEnabled() const { return bCompanionEnabled; }
 protected:
     virtual void BeginPlay() override;
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     UPROPERTY(Config, EditDefaultsOnly, BlueprintReadOnly, Category="VERITY|AI") FString AIBackendBaseUrl;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCompanionAI> CompanionAI;
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="VERITY") TObjectPtr<UVerityCombatSystem> CombatSystem;
